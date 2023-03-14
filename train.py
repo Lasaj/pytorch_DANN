@@ -16,9 +16,9 @@ source_test_loader = mnist.mnist_test_loader
 target_test_loader = mnistm.mnistm_test_loader
 
 
-def source_only(encoder, classifier, source_train_loader, target_train_loader, save_name):
+def source_only(device, encoder, classifier, source_train_loader, target_train_loader, save_name):
     print("Source-only training")
-    classifier_criterion = nn.CrossEntropyLoss().cuda()
+    classifier_criterion = nn.CrossEntropyLoss().to(device)
     optimizer = optim.SGD(
         list(encoder.parameters()) +
         list(classifier.parameters()),
@@ -36,7 +36,7 @@ def source_only(encoder, classifier, source_train_loader, target_train_loader, s
             p = float(batch_idx + start_steps) / total_steps
 
             source_image = torch.cat((source_image, source_image, source_image), 1)  # MNIST convert to 3 channel
-            source_image, source_label = source_image.cuda(), source_label.cuda()  # 32
+            source_image, source_label = source_image.to(device), source_label.to(device)  # 32
 
             optimizer = utils.optimizer_scheduler(optimizer=optimizer, p=p)
             optimizer.zero_grad()
@@ -55,14 +55,14 @@ def source_only(encoder, classifier, source_train_loader, target_train_loader, s
         if (epoch + 1) % 10 == 0:
             test.tester(encoder, classifier, None, source_test_loader, target_test_loader, training_mode='source_only')
     save_model(encoder, classifier, None, 'source', save_name)
-    visualize(encoder, 'source', save_name)
+    visualize(device, encoder, 'source', save_name)
 
 
-def dann(encoder, classifier, discriminator, source_train_loader, target_train_loader, save_name):
+def dann(device, encoder, classifier, discriminator, source_train_loader, target_train_loader, save_name):
     print("DANN training")
     
-    classifier_criterion = nn.CrossEntropyLoss().cuda()
-    discriminator_criterion = nn.CrossEntropyLoss().cuda()
+    classifier_criterion = nn.CrossEntropyLoss().to(device)
+    discriminator_criterion = nn.CrossEntropyLoss().to(device)
     
     optimizer = optim.SGD(
     list(encoder.parameters()) +
@@ -88,8 +88,8 @@ def dann(encoder, classifier, discriminator, source_train_loader, target_train_l
 
             source_image = torch.cat((source_image, source_image, source_image), 1)
 
-            source_image, source_label = source_image.cuda(), source_label.cuda()
-            target_image, target_label = target_image.cuda(), target_label.cuda()
+            source_image, source_label = source_image.to(device), source_label.to(device)
+            target_image, target_label = target_image.to(device), target_label.to(device)
             combined_image = torch.cat((source_image, target_image), 0)
 
             optimizer = utils.optimizer_scheduler(optimizer=optimizer, p=p)
@@ -107,7 +107,7 @@ def dann(encoder, classifier, discriminator, source_train_loader, target_train_l
 
             domain_source_labels = torch.zeros(source_label.shape[0]).type(torch.LongTensor)
             domain_target_labels = torch.ones(target_label.shape[0]).type(torch.LongTensor)
-            domain_combined_label = torch.cat((domain_source_labels, domain_target_labels), 0).cuda()
+            domain_combined_label = torch.cat((domain_source_labels, domain_target_labels), 0).to(device)
             domain_loss = discriminator_criterion(domain_pred, domain_combined_label)
 
             total_loss = class_loss + domain_loss
@@ -122,4 +122,4 @@ def dann(encoder, classifier, discriminator, source_train_loader, target_train_l
             test.tester(encoder, classifier, discriminator, source_test_loader, target_test_loader, training_mode='dann')
 
     save_model(encoder, classifier, discriminator, 'source', save_name)
-    visualize(encoder, 'source', save_name)
+    visualize(device, encoder, 'source', save_name)
