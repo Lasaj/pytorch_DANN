@@ -7,8 +7,7 @@ from datetime import datetime
 from utils import get_free_gpu
 
 start_time = datetime.now()
-save_name = f'{start_time}'
-
+save_name = start_time.strftime("%y%m%d_%H%M")
 
 def main():
 
