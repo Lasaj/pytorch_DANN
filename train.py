@@ -121,5 +121,5 @@ def dann(device, encoder, classifier, discriminator, source_train_loader, target
         if (epoch + 1) % 10 == 0:
             test.tester(encoder, classifier, discriminator, source_test_loader, target_test_loader, training_mode='dann')
 
-    save_model(encoder, classifier, discriminator, 'source', save_name)
-    visualize(device, encoder, 'source', save_name)
+    save_model(encoder, classifier, discriminator, 'dann', save_name)
+    visualize(device, encoder, 'dann', save_name)
