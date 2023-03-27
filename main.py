@@ -4,7 +4,7 @@ import mnist
 import mnistm
 import model
 from datetime import datetime
-from utils import get_free_gpu
+from utils import get_free_gpu, visualize
 
 start_time = datetime.now()
 save_name = start_time.strftime("%y%m%d_%H%M")
@@ -24,9 +24,11 @@ def main():
     classifier = model.Classifier().to(device)
     discriminator = model.Discriminator().to(device)
 
-    train.source_only(device, encoder, classifier, source_train_loader, target_train_loader, save_name)
-    train.dann(device, encoder, classifier, discriminator, source_train_loader, target_train_loader, save_name)
+    # train.source_only(device, encoder, classifier, source_train_loader, target_train_loader, save_name)
+    # train.dann(device, encoder, classifier, discriminator, source_train_loader, target_train_loader, save_name)
 
+    encoder.load_state_dict(torch.load('./trained_models/encoder_source_230327_1204.pt', map_location=device))
+    visualize(device, encoder, 'source', save_name)
 
 if __name__ == "__main__":
     main()

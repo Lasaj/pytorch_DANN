@@ -1,5 +1,6 @@
 import pandas as pd
 import matplotlib.pyplot as plt
+import itertools
 
 from bokeh.plotting import figure, output_file, show, ColumnDataSource
 from bokeh.models import CustomJS, HoverTool, PanTool, WheelZoomTool, LinearAxis
@@ -12,6 +13,7 @@ Plot TSNE as an interactive html plot using Bokeh
 """
 
 def make_df(feats_embedding, labels, domain, name):
+    labels = list(itertools.chain.from_iterable(labels))
     samples = {'label': labels,
                'domain': domain,
                'x_feats': feats_embedding[:, 0],
@@ -39,7 +41,7 @@ def make_df(feats_embedding, labels, domain, name):
         my_col_string = 'color_' + col
         sample_df[my_col_string] = set_colors(sample_df[col].values, plt.cm.Set1)
 
-    sample_df['color_data'] = set_colors(sample_df.dx_code)
+    sample_df['color_data'] = set_colors(sample_df.label_code)
     sample_df.to_csv(f"{name}_samples.csv")
     return sample_df
 
@@ -97,7 +99,7 @@ def create_bokeh(dann_tsne, labels, domains, title):
     source2 = ColumnDataSource(data=df.to_dict('list'))
 
     p = figure(tools=[hover, PanTool(), WheelZoomTool()],
-               plot_width=figure_size + 500, plot_height=figure_size,
+               min_width=figure_size + 500, min_height=figure_size,
                toolbar_location="above", title=title)
 
     p.circle('x_feats', 'y_feats', fill_color='color_data', legend_field='label', source=source,
