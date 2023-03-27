@@ -14,8 +14,9 @@ Plot TSNE as an interactive html plot using Bokeh
 
 def make_df(feats_embedding, labels, domain, name):
     labels = list(itertools.chain.from_iterable(labels))
+
     samples = {'label': labels,
-               'domain': domain,
+               'domain': domain.cpu().numpy(),
                'x_feats': feats_embedding[:, 0],
                'y_feats': feats_embedding[:, 1]
                }
