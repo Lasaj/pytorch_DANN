@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from torch.autograd import Function
 from sklearn.manifold import TSNE
+from visualiser import create_bokeh
 import torch
 import mnist
 import mnistm
@@ -151,6 +152,7 @@ def visualize(device, encoder, training_mode, save_name):
     print('Draw plot ...')
     save_name = save_name + '_' + str(training_mode)
     plot_embedding(dann_tsne, combined_label_list, combined_domain_list, training_mode, save_name)
+    create_bokeh(dann_tsne, combined_label_list, combined_domain_list, save_name)
 
 
 def visualize_input(device):
