@@ -1,4 +1,3 @@
-import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
@@ -13,12 +12,19 @@ Plot TSNE as an interactive html plot using Bokeh
 """
 
 def make_df(feats_embedding, labels, domain, name):
-    sample_df = pd.DataFrame
+    samples = {'label': labels,
+               'domain': domain,
+               'x_feats': feats_embedding[:, 0],
+               'y_feats': feats_embedding[:, 1]
+               }
 
-    sample_df['x_feats'] = feats_embedding[:, 0]
-    sample_df['y_feats'] = feats_embedding[:, 1]
-    sample_df['label'] = labels
-    sample_df['domain'] = domain
+    sample_df = pd.DataFrame(samples)
+    # sample_df = pd.DataFrame
+    #
+    # sample_df['x_feats'] = feats_embedding[:, 0]
+    # sample_df['y_feats'] = feats_embedding[:, 1]
+    # sample_df['label'] = labels
+    # sample_df['domain'] = domain
 
     vars = ['label', 'domain']
     var_cats = []
@@ -36,7 +42,6 @@ def make_df(feats_embedding, labels, domain, name):
     sample_df['color_data'] = set_colors(sample_df.dx_code)
     sample_df.to_csv(f"{name}_samples.csv")
     return sample_df
-
 
 
 def clamp(x):
@@ -95,7 +100,7 @@ def create_bokeh(dann_tsne, labels, domains, title):
                plot_width=figure_size + 500, plot_height=figure_size,
                toolbar_location="above", title=title)
 
-    p.circle('x_feats', 'y_feats', fill_color='color_data', legend_field='dx', source=source,
+    p.circle('x_feats', 'y_feats', fill_color='color_data', legend_field='label', source=source,
              line_color='black', size=10, alpha=0.7)
 
     p.xaxis.visible = False
@@ -124,17 +129,3 @@ def create_bokeh(dann_tsne, labels, domains, title):
 
     layout = column(p, row(toggle1, toggle2))
     show(layout)
-
-
-def see_data_distribution(df):
-    fig, axs = plt.subplots(2, 3, figsize=(10, 10))
-    fig.suptitle('Distribution of UMAP Sample, n = 805')
-
-    cols = sorted(['dx', 'dx_type', 'age', 'sex', 'localization', 'dataset'])
-    for i, var in enumerate(cols):
-        print(df[var].value_counts())
-        df[var].value_counts().plot(kind='bar', ax=axs[i // 3, i % 3]).set_title(var)
-
-    plt.tight_layout()
-    plt.show()
-
