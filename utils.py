@@ -152,7 +152,7 @@ def visualize(device, encoder, training_mode, save_name):
     print('Draw plot ...')
     save_name = save_name + '_' + str(training_mode)
     plot_embedding(dann_tsne, combined_label_list, combined_domain_list, training_mode, save_name)
-    create_bokeh(dann_tsne, combined_label_list, combined_domain_list, save_name)
+    create_bokeh(dann_tsne, combined_label_list, combined_domain_list, f"{save_name}_{training_mode}")
 
 
 def visualize_input(device):
