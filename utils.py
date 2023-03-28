@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 from torch.autograd import Function
 from sklearn.manifold import TSNE
 from visualiser import create_bokeh
+from torchvision.utils import save_image
 import torch
 import mnist
 import mnistm
@@ -139,6 +140,12 @@ def visualize(device, encoder, training_mode, save_name):
     combined_label_list.extend(target_label_list)
     combined_img_list = torch.cat((source_img_list, target_img_list), 0)
 
+    img_files = []
+    for i, img in enumerate(combined_img_list):
+        file_name = f'./{training_mode}_imgs/{i}.png'
+        save_image(img, file_name)
+        img_files.append(file_name)
+
     source_domain_list = torch.zeros(512).type(torch.LongTensor)
     target_domain_list = torch.ones(512).type(torch.LongTensor)
     combined_domain_list = torch.cat((source_domain_list, target_domain_list), 0).to(device)
@@ -152,7 +159,7 @@ def visualize(device, encoder, training_mode, save_name):
     print('Draw plot ...')
     save_name = save_name + '_' + str(training_mode)
     plot_embedding(dann_tsne, combined_label_list, combined_domain_list, training_mode, save_name)
-    create_bokeh(dann_tsne, combined_label_list, combined_domain_list, f"{save_name}_{training_mode}")
+    create_bokeh(dann_tsne, combined_label_list, combined_domain_list, img_files, f"{save_name}_{training_mode}")
 
 
 def visualize_input(device):

@@ -12,11 +12,12 @@ from bokeh.layouts import column, row
 Plot TSNE as an interactive html plot using Bokeh
 """
 
-def make_df(feats_embedding, labels, domain, name):
+def make_df(feats_embedding, labels, domain, img_paths, name):
     labels = list(itertools.chain.from_iterable(labels))
 
     samples = {'label': labels,
                'domain': domain.cpu().numpy(),
+               'img_paths': img_paths,
                'x_feats': feats_embedding[:, 0],
                'y_feats': feats_embedding[:, 1]
                }
@@ -69,8 +70,10 @@ def set_colors(vals_for_color, colors=plt.cm.tab20b):
     return colors_hex
 
 
-def create_bokeh(dann_tsne, labels, domains, title):
-    df = make_df(dann_tsne, labels, domains, title)
+def create_bokeh(dann_tsne, labels, domains, img_paths, title):
+    df = make_df(dann_tsne, labels, domains, img_paths, title)
+
+    print(df.head())
 
     output_file(f"{title}.html")
     figure_size = 500
@@ -80,6 +83,8 @@ def create_bokeh(dann_tsne, labels, domains, title):
         tooltips="""
             <div>
                 <span style="font-size: 10px;">Label: @label</span>
+                <br>
+                <span style="font-size: 10px;">domain: @domain</span>
                 <br>
                 <span style="font-size: 10px;">domain: @domain</span>
                 <br>
