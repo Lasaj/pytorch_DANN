@@ -39,6 +39,14 @@ def optimizer_scheduler(optimizer, p):
     return optimizer
 
 
+def my_kl(predicted, target):
+    """
+    Calculate KL divergence for domain loss function
+    """
+    return -(target * torch.log(predicted.clamp_min(1e-7))).sum(dim=1).mean() - \
+           -1 * (target.clamp(min=1e-7) * torch.log(target.clamp(min=1e-7))).sum(dim=1).mean()
+
+
 def one_hot_embedding(labels, num_classes=10):
     """Embedding labels to one-hot form.
 
