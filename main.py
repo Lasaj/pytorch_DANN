@@ -24,7 +24,7 @@ def main():
     classifier = model.Classifier().to(device)
     discriminator = model.Discriminator().to(device)
 
-    train.source_only(device, encoder, classifier, source_train_loader, target_train_loader, save_name)
+    # train.source_only(device, encoder, classifier, source_train_loader, target_train_loader, save_name)
     train.dann(device, encoder, classifier, discriminator, source_train_loader, target_train_loader, save_name)
 
     # encoder.load_state_dict(torch.load('./trained_models/encoder_source_230327_1204.pt', map_location=device))

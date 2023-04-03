@@ -46,6 +46,9 @@ def my_kl(predicted, target):
     return -(target * torch.log(predicted.clamp_min(1e-7))).sum(dim=1).mean() - \
            -1 * (target.clamp(min=1e-7) * torch.log(target.clamp(min=1e-7))).sum(dim=1).mean()
 
+def kl(pred, target):
+    return torch.sum(target * torch.log(target / pred), dim=1).mean()
+
 
 def one_hot_embedding(labels, num_classes=10):
     """Embedding labels to one-hot form.
