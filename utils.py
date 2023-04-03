@@ -4,6 +4,7 @@ from torch.autograd import Function
 from sklearn.manifold import TSNE
 from visualiser import create_bokeh
 from torchvision.utils import save_image
+import torch.nn.functional as F
 import torch
 import mnist
 import mnistm
@@ -43,10 +44,12 @@ def my_kl(predicted, target):
     """
     Calculate KL divergence for domain loss function
     """
+    target = F.one_hot(target.long(), num_classes=2)
     return -(target * torch.log(predicted.clamp_min(1e-7))).sum(dim=1).mean() - \
            -1 * (target.clamp(min=1e-7) * torch.log(target.clamp(min=1e-7))).sum(dim=1).mean()
 
 def kl(pred, target):
+    target = F.one_hot(target.long(), num_classes=2)
     return torch.sum(target * torch.log(target / pred), dim=1).mean()
 
 

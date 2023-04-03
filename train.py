@@ -109,7 +109,7 @@ def dann(device, encoder, classifier, discriminator, source_train_loader, target
             domain_target_labels = torch.ones(target_label.shape[0]).type(torch.LongTensor)
             domain_combined_label = torch.cat((domain_source_labels, domain_target_labels), 0).to(device)
             # domain_loss = discriminator_criterion(domain_pred, domain_combined_label)
-            domain_loss = utils.kl(domain_pred, domain_combined_label)
+            domain_loss = utils.my_kl(domain_pred, domain_combined_label)
 
             total_loss = class_loss + domain_loss
             total_loss.backward()
