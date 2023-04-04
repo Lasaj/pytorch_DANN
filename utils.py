@@ -49,8 +49,10 @@ def my_kl(predicted, target):
            -1 * (target.clamp(min=1e-7) * torch.log(target.clamp(min=1e-7))).sum(dim=1).mean()
 
 def kl(pred, target):
-    target = F.one_hot(target.long(), num_classes=2)
-    return torch.sum(target * torch.log(target / pred), dim=1).mean()
+    target = F.one_hot(target, num_classes=2)
+    # print(pred[0], target)
+    # exit()
+    return torch.sum(target * torch.log(target.clamp(min=1e-7) / pred.clamp(min=1e-7)), dim=1).mean()
 
 
 def one_hot_embedding(labels, num_classes=10):
