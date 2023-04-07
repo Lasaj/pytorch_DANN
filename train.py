@@ -111,7 +111,7 @@ def dann(device, encoder, classifier, discriminator, source_train_loader, target
             # domain_loss = discriminator_criterion(domain_pred, domain_combined_label)
             domain_loss = utils.kl(domain_pred, domain_combined_label)
 
-            total_loss = class_loss + domain_loss
+            total_loss = class_loss + (domain_loss * epoch / params.epochs)
             total_loss.backward()
             optimizer.step()
 

@@ -44,7 +44,7 @@ def make_df(feats_embedding, labels, domain, img_paths, name):
         sample_df[my_col_string] = set_colors(sample_df[col].values, plt.cm.Set1)
 
     sample_df['color_data'] = set_colors(sample_df.label_code)
-    sample_df.to_csv(f"{name}_samples.csv")
+    sample_df.to_csv(f"interactive_plots/{name}_samples.csv")
     return sample_df
 
 
@@ -75,7 +75,7 @@ def create_bokeh(dann_tsne, labels, domains, img_paths, title):
 
     print(df.head())
 
-    output_file(f"{title}.html")
+    output_file(f"interactive_plots/{title}.html")
     figure_size = 500
 
 
