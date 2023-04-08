@@ -114,19 +114,20 @@ def dann(device, encoder, classifier, discriminator, source_train_loader, target
             # domain_loss = discriminator_criterion(domain_pred, domain_combined_label)
             domain_loss = utils.kl(domain_pred, domain_combined_label)
 
-            domain_loss_weight = max(0, (epoch - 10) / params.epochs)
+            domain_loss_weight = max(0, (epoch - 20) / params.epochs)
 
             total_loss = class_loss + (domain_loss * domain_loss_weight)
             total_loss.backward()
             optimizer.step()
 
-            if (batch_idx + 1) % 50 == 0:
+            # if (batch_idx + 1) % 50 == 0:
+            if (batch_idx + 1) % 100 == 0:
                 print('[{}/{} ({:.0f}%)]\tLoss: {:.6f}\tClass Loss: {:.6f}\tDomain Loss: {:.6f}'.format(
                     batch_idx * len(target_image), len(target_train_loader.dataset),
                     100. * batch_idx / len(target_train_loader), total_loss.item(), class_loss.item(),
                     domain_loss.item()))
 
-        if (epoch + 1) % 10 == 0:
+        if (epoch + 1) % 1 == 0:
             test.tester(encoder, classifier, discriminator, source_test_loader, target_test_loader,
                         training_mode='dann')
 
