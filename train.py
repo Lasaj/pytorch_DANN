@@ -23,14 +23,14 @@ def source_only(device, encoder, classifier, source_train_loader, target_train_l
         list(encoder.parameters()) +
         list(classifier.parameters()),
         lr=0.01, momentum=0.9)
-    
+
     for epoch in range(params.epochs):
         print('Epoch : {}'.format(epoch))
         set_model_mode('train', [encoder, classifier])
 
         start_steps = epoch * len(source_train_loader)
         total_steps = params.epochs * len(target_train_loader)
-        
+
         for batch_idx, (source_data, target_data) in enumerate(zip(source_train_loader, target_train_loader)):
             source_image, source_label = source_data
             p = float(batch_idx + start_steps) / total_steps
@@ -50,7 +50,10 @@ def source_only(device, encoder, classifier, source_train_loader, target_train_l
             class_loss.backward()
             optimizer.step()
             if (batch_idx + 1) % 50 == 0:
-                print('[{}/{} ({:.0f}%)]\tClass Loss: {:.6f}'.format(batch_idx * len(source_image), len(source_train_loader.dataset), 100. * batch_idx / len(source_train_loader), class_loss.item()))
+                print('[{}/{} ({:.0f}%)]\tClass Loss: {:.6f}'.format(batch_idx * len(source_image),
+                                                                     len(source_train_loader.dataset),
+                                                                     100. * batch_idx / len(source_train_loader),
+                                                                     class_loss.item()))
 
         if (epoch + 1) % 10 == 0:
             test.tester(encoder, classifier, None, source_test_loader, target_test_loader, training_mode='source_only')
@@ -60,24 +63,24 @@ def source_only(device, encoder, classifier, source_train_loader, target_train_l
 
 def dann(device, encoder, classifier, discriminator, source_train_loader, target_train_loader, save_name):
     print("DANN training")
-    
+
     classifier_criterion = nn.CrossEntropyLoss().to(device)
     discriminator_criterion = nn.CrossEntropyLoss().to(device)
-    
+
     optimizer = optim.SGD(
-    list(encoder.parameters()) +
-    list(classifier.parameters()) +
-    list(discriminator.parameters()),
-    lr=0.01,
-    momentum=0.9)
-    
+        list(encoder.parameters()) +
+        list(classifier.parameters()) +
+        list(discriminator.parameters()),
+        lr=0.01,
+        momentum=0.9)
+
     for epoch in range(params.epochs):
         print('Epoch : {}'.format(epoch))
         set_model_mode('train', [encoder, classifier, discriminator])
 
         start_steps = epoch * len(source_train_loader)
         total_steps = params.epochs * len(target_train_loader)
-        
+
         for batch_idx, (source_data, target_data) in enumerate(zip(source_train_loader, target_train_loader)):
 
             source_image, source_label = source_data
@@ -111,16 +114,21 @@ def dann(device, encoder, classifier, discriminator, source_train_loader, target
             # domain_loss = discriminator_criterion(domain_pred, domain_combined_label)
             domain_loss = utils.kl(domain_pred, domain_combined_label)
 
-            total_loss = class_loss + (domain_loss * epoch / params.epochs)
+            domain_loss_weight = max(0, (epoch - 10) / params.epochs)
+
+            total_loss = class_loss + (domain_loss * domain_loss_weight)
             total_loss.backward()
             optimizer.step()
 
             if (batch_idx + 1) % 50 == 0:
                 print('[{}/{} ({:.0f}%)]\tLoss: {:.6f}\tClass Loss: {:.6f}\tDomain Loss: {:.6f}'.format(
-                    batch_idx * len(target_image), len(target_train_loader.dataset), 100. * batch_idx / len(target_train_loader), total_loss.item(), class_loss.item(), domain_loss.item()))
+                    batch_idx * len(target_image), len(target_train_loader.dataset),
+                    100. * batch_idx / len(target_train_loader), total_loss.item(), class_loss.item(),
+                    domain_loss.item()))
 
         if (epoch + 1) % 10 == 0:
-            test.tester(encoder, classifier, discriminator, source_test_loader, target_test_loader, training_mode='dann')
+            test.tester(encoder, classifier, discriminator, source_test_loader, target_test_loader,
+                        training_mode='dann')
 
     save_model(encoder, classifier, discriminator, 'dann', save_name)
     visualize(device, encoder, 'dann', save_name)
