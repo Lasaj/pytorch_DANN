@@ -126,6 +126,7 @@ def dann(device, encoder, classifier, discriminator, source_train_loader, target
                     batch_idx * len(target_image), len(target_train_loader.dataset),
                     100. * batch_idx / len(target_train_loader), total_loss.item(), class_loss.item(),
                     domain_loss.item()))
+                visualize(device, encoder, 'dann', save_name + epoch)
 
         if (epoch + 1) % 1 == 0:
             test.tester(encoder, classifier, discriminator, source_test_loader, target_test_loader,
