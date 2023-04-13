@@ -1,6 +1,7 @@
 import torch.nn as nn
 import torch.nn.functional as F
 from utils import ReverseLayerF
+from torchvision.models import inception_v3
 
 
 class Extractor(nn.Module):
