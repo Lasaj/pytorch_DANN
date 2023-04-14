@@ -1,25 +1,20 @@
-import numpy as np
 import imageio.v2 as imageio
-import matplotlib.pyplot as plt
-from torch.autograd import Function
-from sklearn.manifold import TSNE
-from visualiser import create_bokeh
-from torchvision.utils import save_image
+# from sklearn.manifold import TSNE
 from utils import plot_embedding
-import torch.nn.functional as F
 import torch
 import mnist
 import model
 import mnistm
 from glob import glob
-import itertools
 import os
+# import umap
+# from umap import UMAP
+from openTSNE import TSNE
 
 
 """
 Script to run TSNE over saved features to produce an animation
 """
-
 
 
 def get_data(device):
@@ -78,7 +73,7 @@ def get_data(device):
 
 def perform_tsne(device, features, imgs, labels, domains, save_name):
     encoder = model.Extractor().to(device)
-    tsne = TSNE(perplexity=30, n_components=2, init='pca', n_iter=3000)
+    tsne = TSNE(perplexity=30, n_components=2, n_iter=3000)
 
     last_features = features[-1]
     print(f"{type(last_features)}, {last_features}")
@@ -86,7 +81,7 @@ def perform_tsne(device, features, imgs, labels, domains, save_name):
     print(type(loaded), loaded)
     encoder.load_state_dict(loaded)
     combined_features = encoder(imgs)
-    tsne_transform = tsne.fit(combined_features.detach().cpu().numpy())
+    embedding = tsne.fit(combined_features.detach().cpu().numpy())
 
     for epoch, epoch_features in enumerate(features):
         encoder.load_state_dict(torch.load(epoch_features, map_location=device))
@@ -94,12 +89,34 @@ def perform_tsne(device, features, imgs, labels, domains, save_name):
         print(f"TSNE epoch {epoch}")
         combined_feature = encoder(imgs)  # combined_feature : 1024,2352
 
-        dann_tsne = tsne_transform.fit_transform(combined_feature.detach().cpu().numpy())
+        dann_tsne = embedding.transform(combined_feature.detach().cpu().numpy())
 
         print('Draw plot')
         plot_embedding(dann_tsne, labels, domains, 'anim/', save_name + str(epoch))
         # create_bokeh(dann_tsne, combined_label_list, combined_domain_list, img_files, f"{save_name}_{training_mode}")
 
+
+# def perform_umap(device, features, imgs, labels, domains, save_name):
+#     encoder = model.Extractor().to(device)
+#     trans = umap.UMAP(n_neighbors=30, min_dist=0.0, n_components=2, random_state=42)
+#
+#     last_features = features[-1]
+#     loaded = torch.load(last_features, map_location=device)
+#     encoder.load_state_dict(loaded)
+#     combined_features = encoder(imgs)
+#     trans = trans.fit(combined_features.detach().cpu().numpy())
+#
+#     for epoch, epoch_features in enumerate(features):
+#         encoder.load_state_dict(torch.load(epoch_features, map_location=device))
+#
+#         print(f"TSNE epoch {epoch}")
+#         combined_feature = encoder(imgs)  # combined_feature : 1024,2352
+#         embedding = trans.transform(combined_feature.detach().cpu().numpy())
+#
+#         print('Draw plot')
+#         plot_embedding(embedding, labels, domains, 'anim/', save_name + str(epoch))
+#         # create_bokeh(embedding, combined_label_list, combined_domain_list, img_files, f"{save_name}_{training_mode}")
+#
 
 def get_features(location):
     features = glob(os.path.join(location, "*"))
@@ -109,7 +126,7 @@ def get_features(location):
 
 def make_gif(location):
     images = []
-    for filename in os.listdir(location):
+    for filename in sorted(os.listdir(location)):
         images.append(imageio.imread(os.path.join(location, filename)))
     imageio.mimsave(os.path.join(location, 'anim.gif'), images, duration=0.4)
 
