@@ -113,6 +113,7 @@ def plot_embedding(X, y, d, training_mode, save_name):
     fig_name = 'saved_plot/' + str(training_mode) + '_' + str(save_name) + '.png'
     plt.savefig(fig_name)
     print('{} is saved'.format(fig_name))
+    plt.close(fig_name)
 
 
 def visualize(device, encoder, training_mode, save_name):

@@ -81,12 +81,15 @@ def perform_tsne(device, features, imgs, labels, domains, save_name):
     tsne = TSNE(perplexity=30, n_components=2, init='pca', n_iter=3000)
 
     last_features = features[-1]
-    encoder.load_state_dict(torch.load(str(last_features)))
-    last_features = encoder(imgs)
-    tsne_transform = tsne.fit(last_features.detach().cpu().numpy())
+    print(f"{type(last_features)}, {last_features}")
+    loaded = torch.load(last_features, map_location=device)
+    print(type(loaded), loaded)
+    encoder.load_state_dict(loaded)
+    combined_features = encoder(imgs)
+    tsne_transform = tsne.fit(combined_features.detach().cpu().numpy())
 
     for epoch, epoch_features in enumerate(features):
-        encoder.load_state_dict(torch.load(str(last_features)))
+        encoder.load_state_dict(torch.load(epoch_features, map_location=device))
 
         print(f"TSNE epoch {epoch}")
         combined_feature = encoder(imgs)  # combined_feature : 1024,2352
@@ -112,9 +115,10 @@ def make_gif(location):
 
 
 def main():
+    device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
     all_features = get_features('./trained_models/anim/')
-    labels, imgs, domains = get_data('cuda:0')
-    perform_tsne('cuda:0', all_features, imgs, labels, domains, 'anim')
+    labels, imgs, domains = get_data(device)
+    perform_tsne(device, all_features, imgs, labels, domains, 'anim')
     make_gif('saved_plot/anim/')
 
 
