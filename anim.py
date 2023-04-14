@@ -81,12 +81,12 @@ def perform_tsne(device, features, imgs, labels, domains, save_name):
     tsne = TSNE(perplexity=30, n_components=2, init='pca', n_iter=3000)
 
     last_features = features[-1]
-    encoder.load_state_dict(torch.load(last_features, map_location=device))
+    encoder.load_state_dict(torch.load(str(last_features)))
     last_features = encoder(imgs)
     tsne_transform = tsne.fit(last_features.detach().cpu().numpy())
 
     for epoch, epoch_features in enumerate(features):
-        encoder.load_state_dict(torch.load(last_features, map_location=device))
+        encoder.load_state_dict(torch.load(str(last_features)))
 
         print(f"TSNE epoch {epoch}")
         combined_feature = encoder(imgs)  # combined_feature : 1024,2352
