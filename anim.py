@@ -71,14 +71,12 @@ def get_data(device):
     return combined_label_list, combined_img_list, combined_domain_list
 
 
-def perform_tsne(device, features, imgs, labels, domains, save_name):
+def perform_tsne(device, features, imgs, labels, domains, save_name, base_fit):
     encoder = model.Extractor().to(device)
     tsne = TSNE(perplexity=30, n_components=2, n_iter=3000)
 
-    last_features = features[-1]
-    print(f"{type(last_features)}, {last_features}")
-    loaded = torch.load(last_features, map_location=device)
-    print(type(loaded), loaded)
+    base = features[0] if base_fit == 'first' else features[-1]
+    loaded = torch.load(base, map_location=device)
     encoder.load_state_dict(loaded)
     combined_features = encoder(imgs)
     embedding = tsne.fit(combined_features.detach().cpu().numpy())
@@ -88,11 +86,10 @@ def perform_tsne(device, features, imgs, labels, domains, save_name):
 
         print(f"TSNE epoch {epoch}")
         combined_feature = encoder(imgs)  # combined_feature : 1024,2352
-
         dann_tsne = embedding.transform(combined_feature.detach().cpu().numpy())
-
+        ep_str = '0' + str(epoch) if epoch < 10 else str(epoch)
         print('Draw plot')
-        plot_embedding(dann_tsne, labels, domains, 'anim/', save_name + str(epoch))
+        plot_embedding(dann_tsne, labels, domains, f'anim/{base_fit}/', save_name + ep_str)
         # create_bokeh(dann_tsne, combined_label_list, combined_domain_list, img_files, f"{save_name}_{training_mode}")
 
 
@@ -128,15 +125,16 @@ def make_gif(location):
     images = []
     for filename in sorted(os.listdir(location)):
         images.append(imageio.imread(os.path.join(location, filename)))
-    imageio.mimsave(os.path.join(location, 'anim.gif'), images, duration=0.4)
+    imageio.mimsave(os.path.join(location, 'anim.gif'), images, duration=0.5, loop=1)
 
 
 def main():
+    base_fit = 'last'  # 'last' or 'first'
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
     all_features = get_features('./trained_models/anim/')
     labels, imgs, domains = get_data(device)
-    perform_tsne(device, all_features, imgs, labels, domains, 'anim')
-    make_gif('saved_plot/anim/')
+    perform_tsne(device, all_features, imgs, labels, domains, 'anim', base_fit)
+    make_gif(f'./saved_plot/anim/{base_fit}/')
 
 
 if __name__ == "__main__":
