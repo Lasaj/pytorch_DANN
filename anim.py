@@ -82,13 +82,14 @@ def perform_tsne(device, features, imgs, labels, domains, save_name, base_fit):
     embedding = tsne.fit(combined_features.detach().cpu().numpy())
 
     for epoch, epoch_features in enumerate(features):
+        if epoch > 99:
+            break
         encoder.load_state_dict(torch.load(epoch_features, map_location=device))
 
         print(f"TSNE epoch {epoch}")
         combined_feature = encoder(imgs)  # combined_feature : 1024,2352
         dann_tsne = embedding.transform(combined_feature.detach().cpu().numpy())
         ep_str = '0' + str(epoch) if epoch < 10 else str(epoch)
-        print('Draw plot')
         plot_embedding(dann_tsne, labels, domains, f'anim/{base_fit}/', save_name + ep_str)
         # create_bokeh(dann_tsne, combined_label_list, combined_domain_list, img_files, f"{save_name}_{training_mode}")
 
@@ -110,7 +111,6 @@ def perform_tsne(device, features, imgs, labels, domains, save_name, base_fit):
 #         combined_feature = encoder(imgs)  # combined_feature : 1024,2352
 #         embedding = trans.transform(combined_feature.detach().cpu().numpy())
 #
-#         print('Draw plot')
 #         plot_embedding(embedding, labels, domains, 'anim/', save_name + str(epoch))
 #         # create_bokeh(embedding, combined_label_list, combined_domain_list, img_files, f"{save_name}_{training_mode}")
 #
@@ -129,7 +129,8 @@ def make_gif(location):
 
 
 def main():
-    base_fit = 'last'  # 'last' or 'first'
+    # base_fit = 'last'  # 'last' or 'first'
+    base_fit = 'first'  # 'last' or 'first'
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
     all_features = get_features('./trained_models/anim/')
     labels, imgs, domains = get_data(device)
