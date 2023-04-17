@@ -111,7 +111,7 @@ def perform_tsne(device, features, imgs, base_fit):
 def make_plots(all_embeddings, axis_limits, labels, domains, save_name, base_fit):
     for epoch, embedding in enumerate(all_embeddings):
         ep_str = '0' + str(epoch) if epoch < 10 else str(epoch)
-        plot_embedding(embedding, labels, domains, f'anim/{base_fit}/', save_name + ep_str, axis_limits=axis_limits)
+        plot_embedding(embedding, labels, domains, f'{save_name}/{base_fit}/', save_name + ep_str, axis_limits=axis_limits)
 
 
 # def perform_umap(device, features, imgs, labels, domains, save_name):

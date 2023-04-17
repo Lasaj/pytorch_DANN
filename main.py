@@ -20,7 +20,8 @@ def main():
 
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
     print(f'Running on {device}')
-    encoder = model.Extractor().to(device)
+    # encoder = model.Extractor().to(device)
+    encoder = model.get_iv3().to(device)
     classifier = model.Classifier().to(device)
     discriminator = model.Discriminator().to(device)
 

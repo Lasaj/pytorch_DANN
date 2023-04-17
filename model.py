@@ -1,7 +1,13 @@
 import torch.nn as nn
 import torch.nn.functional as F
 from utils import ReverseLayerF
-from torchvision.models import inception_v3
+from torchvision import models
+
+
+def get_iv3():
+    model = models.inception_v3(pretrained=True)
+    model.fc = nn.Linear(2048, (3*28*28))
+    return model
 
 
 class Extractor(nn.Module):
