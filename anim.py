@@ -71,7 +71,7 @@ def get_data(device):
     return combined_label_list, combined_img_list, combined_domain_list
 
 
-def perform_tsne(device, features, imgs, labels, domains, save_name, base_fit):
+def perform_tsne(device, features, imgs, base_fit):
     encoder = model.Extractor().to(device)
     tsne = TSNE(perplexity=30, n_components=2, n_iter=3000)
 
@@ -81,6 +81,9 @@ def perform_tsne(device, features, imgs, labels, domains, save_name, base_fit):
     combined_features = encoder(imgs)
     embedding = tsne.fit(combined_features.detach().cpu().numpy())
 
+    axis_limits = {'min_x': 0, 'max_x': 0, 'min_y': 0, 'max_y': 0}
+
+    all_embeddings = []
     for epoch, epoch_features in enumerate(features):
         if epoch > 99:
             break
@@ -89,9 +92,26 @@ def perform_tsne(device, features, imgs, labels, domains, save_name, base_fit):
         print(f"TSNE epoch {epoch}")
         combined_feature = encoder(imgs)  # combined_feature : 1024,2352
         dann_tsne = embedding.transform(combined_feature.detach().cpu().numpy())
-        ep_str = '0' + str(epoch) if epoch < 10 else str(epoch)
-        plot_embedding(dann_tsne, labels, domains, f'anim/{base_fit}/', save_name + ep_str)
+
+        all_embeddings.append(dann_tsne)
+        # x_min = min(dann_tsne[:, 0])
+        # x_max = (max(dann_tsne[:, 0]) - x_min) / (max(dann_tsne[:, 0]) - x_min)
+        # X = (X - x_min) / (x_max - x_min)
+        axis_limits['min_x'] = min(axis_limits['min_x'], min(dann_tsne[:, 0]))
+        axis_limits['max_x'] = max(axis_limits['max_x'], max(dann_tsne[:, 0]))
+        axis_limits['min_y'] = min(axis_limits['min_y'], min(dann_tsne[:, 1]))
+        axis_limits['max_y'] = max(axis_limits['max_y'], max(dann_tsne[:, 1]))
+
+        # plot_embedding(dann_tsne, labels, domains, f'anim/{base_fit}/', save_name + ep_str)
         # create_bokeh(dann_tsne, combined_label_list, combined_domain_list, img_files, f"{save_name}_{training_mode}")
+
+    return all_embeddings, axis_limits
+
+
+def make_plots(all_embeddings, axis_limits, labels, domains, save_name, base_fit):
+    for epoch, embedding in enumerate(all_embeddings):
+        ep_str = '0' + str(epoch) if epoch < 10 else str(epoch)
+        plot_embedding(embedding, labels, domains, f'anim/{base_fit}/', save_name + ep_str, axis_limits=axis_limits)
 
 
 # def perform_umap(device, features, imgs, labels, domains, save_name):
@@ -126,16 +146,22 @@ def make_gif(location):
     for filename in sorted(os.listdir(location)):
         images.append(imageio.imread(os.path.join(location, filename)))
     imageio.mimsave(os.path.join(location, 'anim.gif'), images, duration=0.5, loop=1)
+    print(f"Saved gif to {location}")
 
 
 def main():
+    location = "anim-kl"
     # base_fit = 'last'  # 'last' or 'first'
-    base_fit = 'first'  # 'last' or 'first'
-    device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-    all_features = get_features('./trained_models/anim/')
-    labels, imgs, domains = get_data(device)
-    perform_tsne(device, all_features, imgs, labels, domains, 'anim', base_fit)
-    make_gif(f'./saved_plot/anim/{base_fit}/')
+    # base_fit = 'first'  # 'last' or 'first'
+    for base_fit in ['first', 'last']:
+        device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+
+        all_features = get_features(f'./trained_models/{location}/')
+        print(f"Got {len(all_features)} features")
+        labels, imgs, domains = get_data(device)
+        all_embeddings, axis_limits = perform_tsne(device, all_features, imgs, base_fit)
+        make_plots(all_embeddings, axis_limits, labels, domains, location, base_fit)
+        make_gif(f'./saved_plot/{location}/{base_fit}/')
 
 
 if __name__ == "__main__":

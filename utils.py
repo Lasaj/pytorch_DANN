@@ -85,13 +85,17 @@ def save_model(encoder, classifier, discriminator, training_mode, save_name):
     print('Model is saved !!!')
 
 
-def plot_embedding(X, y, d, training_mode, save_name):
-    x_min, x_max = np.min(X, 0), np.max(X, 0)
-    X = (X - x_min) / (x_max - x_min)
+def plot_embedding(X, y, d, training_mode, save_name, axis_limits=None):
+    # x_min, x_max = np.min(X, 0), np.max(X, 0)
+    # X = (X - x_min) / (x_max - x_min)
     y = list(itertools.chain.from_iterable(y))
     y = np.asarray(y)
 
     plt.figure(figsize=(10, 10))
+    if axis_limits is not None:
+        plt.xlim(axis_limits['min_x'], axis_limits['max_x'])
+        plt.ylim(axis_limits['min_y'], axis_limits['max_y'])
+
     for i in range(len(d)):  # X.shape[0] : 1024
         # plot colored number
         if d[i] == 0:
@@ -113,7 +117,7 @@ def plot_embedding(X, y, d, training_mode, save_name):
     fig_name = 'saved_plot/' + str(training_mode) + '_' + str(save_name) + '.png'
     plt.savefig(fig_name)
     print('{} is saved'.format(fig_name))
-    plt.close(fig_name)
+    plt.close()
 
 
 def visualize(device, encoder, training_mode, save_name):
