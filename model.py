@@ -44,7 +44,7 @@ class Classifier(nn.Module):
 
     def forward(self, x):
         x = self.classifier(x)
-        return F.softmax(x, dim=1)
+        return F.softmax(x)
 
 
 class Discriminator(nn.Module):
@@ -59,4 +59,4 @@ class Discriminator(nn.Module):
     def forward(self, input_feature, alpha):
         reversed_input = ReverseLayerF.apply(input_feature, alpha)
         x = self.discriminator(reversed_input)
-        return F.softmax(x, dim=1)
+        return F.softmax(x)
