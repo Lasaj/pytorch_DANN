@@ -28,7 +28,11 @@ def tester(encoder, classifier, discriminator, source_test_loader, target_test_l
         source_feature = encoder(source_image)
         if encoder.__class__.__name__ == 'Inception3':
             source_feature = source_feature[0]
+        print(source_feature.shape)
         source_output = classifier(source_feature)
+        print(type(source_output))
+        print(source_output.shape)
+        print(source_output)
         source_pred = source_output.data.max(1, keepdim=True)[1]
         source_correct += source_pred.eq(source_label.data.view_as(source_pred)).cpu().sum()
 
