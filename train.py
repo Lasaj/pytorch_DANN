@@ -106,7 +106,6 @@ def dann(device, encoder, classifier, discriminator, loss_type, source_train_loa
             source_feature = encoder(source_image)
 
             if encoder.__class__.__name__ == 'Inception3':
-                print('Inception3')
                 combined_feature = combined_feature[0]
                 source_feature = source_feature[0]
 
