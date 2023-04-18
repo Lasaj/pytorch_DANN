@@ -2,11 +2,13 @@ import torch.nn as nn
 import torch.nn.functional as F
 from utils import ReverseLayerF
 from torchvision import models
+from torchvision.models.inception import Inception_V3_Weights
 
 
 def get_iv3():
-    model = models.inception_v3(pretrained=True)
-    model.fc = nn.Linear(2048, (3*28*28))
+    model = models.inception_v3(weights=Inception_V3_Weights.IMAGENET1K_V1)
+    model.AuxLogits.fc = nn.Linear(768, 768)
+    model.fc = nn.Linear(2048, (3 * 28 * 28))
     return model
 
 
@@ -42,7 +44,7 @@ class Classifier(nn.Module):
 
     def forward(self, x):
         x = self.classifier(x)
-        return F.softmax(x)
+        return F.softmax(x, dim=1)
 
 
 class Discriminator(nn.Module):
@@ -57,4 +59,4 @@ class Discriminator(nn.Module):
     def forward(self, input_feature, alpha):
         reversed_input = ReverseLayerF.apply(input_feature, alpha)
         x = self.discriminator(reversed_input)
-        return F.softmax(x)
+        return F.softmax(x, dim=1)

@@ -12,7 +12,7 @@ def to_colour(img):
     return img
 
 
-transform = transforms.Compose([
+transform = transforms.Compose([transforms.Resize((299, 299)),
                                 transforms.ToTensor(),
                                 # transforms.Lambda(to_colour),
                                 transforms.Normalize(np.mean([0.29730626, 0.29918741, 0.27534935]),

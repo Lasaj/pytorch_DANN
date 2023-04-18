@@ -43,6 +43,10 @@ def source_only(device, encoder, classifier, source_train_loader, target_train_l
 
             source_feature = encoder(source_image)
 
+            if encoder.__class__.__name__ == 'Inception3':
+                print('Inception3')
+                source_feature = source_feature[0]
+
             # Classification loss
             class_pred = classifier(source_feature)
             class_loss = classifier_criterion(class_pred, source_label)
@@ -61,7 +65,7 @@ def source_only(device, encoder, classifier, source_train_loader, target_train_l
     visualize(device, encoder, 'source', save_name)
 
 
-def dann(device, encoder, classifier, discriminator, source_train_loader, target_train_loader, save_name):
+def dann(device, encoder, classifier, discriminator, loss_type, source_train_loader, target_train_loader, save_name):
     print("DANN training")
 
     classifier_criterion = nn.CrossEntropyLoss().to(device)
@@ -101,6 +105,12 @@ def dann(device, encoder, classifier, discriminator, source_train_loader, target
             combined_feature = encoder(combined_image)
             source_feature = encoder(source_image)
 
+            if encoder.__class__.__name__ == 'Inception3':
+                print('Inception3')
+                combined_feature = combined_feature[0]
+                source_feature = source_feature[0]
+
+
             # 1.Classification loss
             class_pred = classifier(source_feature)
             class_loss = classifier_criterion(class_pred, source_label)
@@ -111,8 +121,10 @@ def dann(device, encoder, classifier, discriminator, source_train_loader, target
             domain_source_labels = torch.zeros(source_label.shape[0]).type(torch.LongTensor)
             domain_target_labels = torch.ones(target_label.shape[0]).type(torch.LongTensor)
             domain_combined_label = torch.cat((domain_source_labels, domain_target_labels), 0).to(device)
-            domain_loss = discriminator_criterion(domain_pred, domain_combined_label)
-            domain_loss = utils.kl(domain_pred, domain_combined_label)
+            if loss_type == 'kl':
+                domain_loss = utils.kl(domain_pred, domain_combined_label)
+            else:
+                domain_loss = discriminator_criterion(domain_pred, domain_combined_label)
 
             domain_loss_weight = max(0, (epoch - 20) / params.epochs)
 

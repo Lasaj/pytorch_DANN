@@ -4,13 +4,14 @@ import mnist
 import mnistm
 import model
 from datetime import datetime
-from utils import get_free_gpu, visualize
 
-start_time = datetime.now()
-save_name = start_time.strftime("%y%m%d_%H%M")
+# Training options
+save_name = datetime.now().strftime("%y%m%d_%H%M") + 'IV3'
+discriminator_loss = 'crossentropy'  # Available: 'crossentropy', 'kl'
+encoder_type = 'inceptionv3'  # Available: 'inceptionv3', 'extractor'
+
 
 def main():
-
     source_train_loader = mnist.mnist_train_loader
     target_train_loader = mnistm.mnistm_train_loader
 
@@ -20,16 +21,20 @@ def main():
 
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
     print(f'Running on {device}')
-    # encoder = model.Extractor().to(device)
-    encoder = model.get_iv3().to(device)
+    if encoder_type == 'inceptionv3':
+        encoder = model.get_iv3().to(device)
+    else:
+        encoder = model.Extractor().to(device)
     classifier = model.Classifier().to(device)
     discriminator = model.Discriminator().to(device)
 
     train.source_only(device, encoder, classifier, source_train_loader, target_train_loader, save_name)
-    train.dann(device, encoder, classifier, discriminator, source_train_loader, target_train_loader, save_name)
+    train.dann(device, encoder, classifier, discriminator, discriminator_loss, source_train_loader, target_train_loader,
+               save_name)
 
     # encoder.load_state_dict(torch.load('./trained_models/encoder_source_230327_1204.pt', map_location=device))
     # visualize(device, encoder, 'source', save_name)
+
 
 if __name__ == "__main__":
     main()
