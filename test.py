@@ -26,23 +26,22 @@ def tester(device, encoder, classifier, discriminator, source_test_loader, targe
         source_image, source_label = source_image.to(device), source_label.to(device)
         source_image = torch.cat((source_image, source_image, source_image), 1)  # MNIST convert to 3 channel
         source_feature = encoder(source_image)
-        print("pre", source_feature.shape)
-        if encoder.__class__.__name__ == 'Inception3':
-            source_feature = source_feature[0]
+        # if encoder.__class__.__name__ == 'Inception3':
+        #     source_feature = source_feature[0]
         print("post", source_feature.shape)
         source_output = classifier(source_feature)
         print("source output", source_output.shape)
         source_pred = source_output.data.max(1, keepdim=True)[1]
         # print(source_pred)
-        exit()
+        # exit()
         source_correct += source_pred.eq(source_label.data.view_as(source_pred)).cpu().sum()
 
         # 2. Target input -> Target Classification
         target_image, target_label = target_data
         target_image, target_label = target_image.to(device), target_label.to(device)
         target_feature = encoder(target_image)
-        if encoder.__class__.__name__ == 'Inception3':
-            target_feature = target_feature[0]
+        # if encoder.__class__.__name__ == 'Inception3':
+        #     target_feature = target_feature[0]
         target_output = classifier(target_feature)
         target_pred = target_output.data.max(1, keepdim=True)[1]
         target_correct += target_pred.eq(target_label.data.view_as(target_pred)).cpu().sum()
