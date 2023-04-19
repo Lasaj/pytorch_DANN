@@ -2,15 +2,15 @@ import torch
 import numpy as np
 from utils import set_model_mode
 
-def tester(encoder, classifier, discriminator, source_test_loader, target_test_loader, training_mode):
+def tester(device, encoder, classifier, discriminator, source_test_loader, target_test_loader, training_mode):
     print("Model test ...")
 
-    encoder.cuda()
-    classifier.cuda()
+    encoder.to(device)
+    classifier.to(device)
     set_model_mode('eval', [encoder, classifier])
     
     if training_mode == 'dann':
-        discriminator.cuda()
+        discriminator.to(device)
         set_model_mode('eval', [discriminator])
         domain_correct = 0
 
@@ -23,22 +23,22 @@ def tester(encoder, classifier, discriminator, source_test_loader, target_test_l
 
         # 1. Source input -> Source Classification
         source_image, source_label = source_data
-        source_image, source_label = source_image.cuda(), source_label.cuda()
+        source_image, source_label = source_image.to(device), source_label.to(device)
         source_image = torch.cat((source_image, source_image, source_image), 1)  # MNIST convert to 3 channel
         source_feature = encoder(source_image)
         if encoder.__class__.__name__ == 'Inception3':
             source_feature = source_feature[0]
         print(source_feature.shape)
         source_output = classifier(source_feature)
-        print(type(source_output))
         print(source_output.shape)
-        print(source_output)
         source_pred = source_output.data.max(1, keepdim=True)[1]
+        # print(source_pred)
+        exit()
         source_correct += source_pred.eq(source_label.data.view_as(source_pred)).cpu().sum()
 
         # 2. Target input -> Target Classification
         target_image, target_label = target_data
-        target_image, target_label = target_image.cuda(), target_label.cuda()
+        target_image, target_label = target_image.to(device), target_label.to(device)
         target_feature = encoder(target_image)
         if encoder.__class__.__name__ == 'Inception3':
             target_feature = target_feature[0]
@@ -52,7 +52,7 @@ def tester(encoder, classifier, discriminator, source_test_loader, target_test_l
             combined_image = torch.cat((source_image, target_image), 0)  # 64 = (S:32 + T:32)
             domain_source_labels = torch.zeros(source_label.shape[0]).type(torch.LongTensor)
             domain_target_labels = torch.ones(target_label.shape[0]).type(torch.LongTensor)
-            domain_combined_label = torch.cat((domain_source_labels, domain_target_labels), 0).cuda()
+            domain_combined_label = torch.cat((domain_source_labels, domain_target_labels), 0).to(device)
             domain_feature = encoder(combined_image)
             if encoder.__class__.__name__ == 'Inception3':
                 domain_feature = domain_feature[0]

@@ -19,6 +19,7 @@ transform = transforms.Compose([transforms.Resize((299, 299)),
                                                      np.mean([0.32780124, 0.32292358, 0.32056796])),
                                 ])
 
+
 mnist_train_dataset = datasets.MNIST(root='data/pytorch/MNIST', train=True, download=True,
                                      transform=transform)
 mnist_valid_dataset = datasets.MNIST(root='data/pytorch/MNIST', train=True, download=True,

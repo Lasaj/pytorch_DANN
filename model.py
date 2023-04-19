@@ -9,6 +9,7 @@ def get_iv3():
     model = models.inception_v3(weights=Inception_V3_Weights.IMAGENET1K_V1)
     model.AuxLogits.fc = nn.Linear(768, 768)
     model.fc = nn.Linear(2048, (3 * 28 * 28))
+    # model.fc = nn.Identity()
     return model
 
 
