@@ -28,12 +28,8 @@ def tester(device, encoder, classifier, discriminator, source_test_loader, targe
         source_feature = encoder(source_image)
         # if encoder.__class__.__name__ == 'Inception3':
         #     source_feature = source_feature[0]
-        print("post", source_feature.shape)
         source_output = classifier(source_feature)
-        print("source output", source_output.shape)
         source_pred = source_output.data.max(1, keepdim=True)[1]
-        # print(source_pred)
-        # exit()
         source_correct += source_pred.eq(source_label.data.view_as(source_pred)).cpu().sum()
 
         # 2. Target input -> Target Classification

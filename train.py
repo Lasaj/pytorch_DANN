@@ -61,7 +61,8 @@ def source_only(device, encoder, classifier, source_train_loader, source_test_lo
                                                                      class_loss.item()))
 
         if (epoch + 1) % 1 == 0:
-            save_model(encoder, classifier, None, 'source', save_name)
+            ep_str = '0' + str(epoch) if epoch < 10 else str(epoch)
+            save_model(encoder, classifier, None, 'source', save_name + '_' + ep_str)
             test.tester(device, encoder, classifier, None, source_test_loader, target_test_loader,
                         training_mode='source_only')
     visualize(device, encoder, 'source', save_name)
@@ -140,11 +141,11 @@ def dann(device, encoder, classifier, discriminator, loss_type, source_train_loa
                     batch_idx * len(target_image), len(target_train_loader.dataset),
                     100. * batch_idx / len(target_train_loader), total_loss.item(), class_loss.item(),
                     domain_loss.item()))
-                ep_str = '0' + str(epoch) if epoch < 10 else str(epoch)
                 # visualize(device, encoder, 'dann', save_name + '_' + ep_str)
-                save_model(encoder, classifier, discriminator, 'dann', save_name + '_' + ep_str)
 
         if (epoch + 1) % 1 == 0:
+            ep_str = '0' + str(epoch) if epoch < 10 else str(epoch)
+            save_model(encoder, classifier, discriminator, 'dann', save_name + '_' + ep_str)
             test.tester(device, encoder, classifier, discriminator, source_test_loader, target_test_loader,
                         training_mode='dann')
 
