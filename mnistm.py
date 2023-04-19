@@ -89,9 +89,9 @@ class MNISTM(data.Dataset):
         return os.path.exists(os.path.join(self.root,
                                            self.processed_folder,
                                            self.training_file)) and \
-               os.path.exists(os.path.join(self.root,
-                                           self.processed_folder,
-                                           self.test_file))
+            os.path.exists(os.path.join(self.root,
+                                        self.processed_folder,
+                                        self.test_file))
 
     def download(self):
         """Download the MNIST data."""
@@ -167,19 +167,19 @@ def get_test_dataloaders(encoder_type):
                                     ])
 
     if encoder_type == 'inceptionv3':
-        test_transform = transforms.Compose([transforms.Resize((299, 299)),
-                                        transforms.ToTensor(),
-                                        transforms.Normalize((0.29730626, 0.29918741, 0.27534935),
-                                                             (0.32780124, 0.32292358, 0.32056796))
-                                        ])
+        iv3_transform = transforms.Compose([transforms.Resize((299, 299)),
+                                            transforms.ToTensor(),
+                                            transforms.Normalize((0.29730626, 0.29918741, 0.27534935),
+                                                                 (0.32780124, 0.32292358, 0.32056796))
+                                            ])
     else:
-        test_transform = transform
+        iv3_transform = transform
 
     mnistm_train_dataset = MNISTM(root='data/pytorch/MNIST-M', train=True, download=True,
-                                  transform=transform)
+                                  transform=iv3_transform)
     mnistm_valid_dataset = MNISTM(root='data/pytorch/MNIST-M', train=True, download=True,
                                   transform=transform)
-    mnistm_test_dataset = MNISTM(root='data/pytorch/MNIST-M', train=False, transform=test_transform)
+    mnistm_test_dataset = MNISTM(root='data/pytorch/MNIST-M', train=False, transform=iv3_transform)
 
     indices = list(range(len(mnistm_train_dataset)))
     validation_size = 5000

@@ -47,7 +47,6 @@ def source_only(device, encoder, classifier, source_train_loader, source_test_lo
             if encoder.__class__.__name__ == 'Inception3':
                 source_feature = source_feature[0]
 
-            print(source_feature.shape)
             # Classification loss
             class_pred = classifier(source_feature)
             class_loss = classifier_criterion(class_pred, source_label)
