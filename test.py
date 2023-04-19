@@ -50,8 +50,8 @@ def tester(device, encoder, classifier, discriminator, source_test_loader, targe
             domain_target_labels = torch.ones(target_label.shape[0]).type(torch.LongTensor)
             domain_combined_label = torch.cat((domain_source_labels, domain_target_labels), 0).to(device)
             domain_feature = encoder(combined_image)
-            if encoder.__class__.__name__ == 'Inception3':
-                domain_feature = domain_feature[0]
+            # if encoder.__class__.__name__ == 'Inception3':
+            #     domain_feature = domain_feature[0]
             domain_output = discriminator(domain_feature, alpha)
             domain_pred = domain_output.data.max(1, keepdim=True)[1]
             domain_correct += domain_pred.eq(domain_combined_label.data.view_as(domain_pred)).cpu().sum()
