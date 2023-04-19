@@ -1,5 +1,5 @@
 import imageio.v2 as imageio
-# from sklearn.manifold import TSNE
+# from sklearn.manifold import TSNEcc
 from utils import plot_embedding
 import torch
 import mnist
@@ -17,10 +17,12 @@ Script to run TSNE over saved features to produce an animation
 """
 
 
-def get_data(device):
+def get_data(device, encoder_type):
     # Draw 512 samples in test_data
-    source_test_loader = mnist.mnist_test_loader
-    target_test_loader = mnistm.mnistm_test_loader
+    # source_test_loader = mnist.mnist_test_loader
+    # target_test_loader = mnistm.mnistm_test_loader
+    _, _, source_test_loader = mnist.get_source_dataloaders(encoder_type)
+    _, _, target_test_loader = mnistm.get_test_dataloaders(encoder_type)
 
     # Get source_test samples
     source_label_list = []
@@ -36,7 +38,12 @@ def get_data(device):
         source_img_list.append(img)
 
     source_img_list = torch.stack(source_img_list)
-    source_img_list = source_img_list.view(-1, 3, 28, 28)
+    print(source_img_list.shape)
+    if encoder_type == 'inceptionv3':
+        source_img_list = source_img_list.view(-1, 3, 299, 299)
+    else:
+        source_img_list = source_img_list.view(-1, 3, 28, 28)
+
 
     # Get target_test samples
     target_label_list = []
@@ -51,7 +58,10 @@ def get_data(device):
         target_img_list.append(img)
 
     target_img_list = torch.stack(target_img_list)
-    target_img_list = target_img_list.view(-1, 3, 28, 28)
+    if encoder_type == 'inceptionv3':
+        target_img_list = target_img_list.view(-1, 3, 299, 299)
+    else:
+        target_img_list = target_img_list.view(-1, 3, 28, 28)
 
     # Stack source_list + target_list
     combined_label_list = source_label_list
@@ -71,8 +81,9 @@ def get_data(device):
     return combined_label_list, combined_img_list, combined_domain_list
 
 
-def perform_tsne(device, features, imgs, base_fit):
-    encoder = model.Extractor().to(device)
+def perform_tsne(device, encoder, features, imgs, base_fit):
+    # encoder = model.Extractor().to(device)
+    encoder = encoder.to(device)
     tsne = TSNE(perplexity=30, n_components=2, n_iter=3000)
 
     base = features[0] if base_fit == 'first' else features[-1]
@@ -150,17 +161,26 @@ def make_gif(location):
 
 
 def main():
-    location = "anim-kl"
+    encoder_type = "inceptionv3"
+    location = "iv3_source_only"
     # base_fit = 'last'  # 'last' or 'first'
     # base_fit = 'first'  # 'last' or 'first'
+    if encoder_type == "inceptionv3":
+        encoder = model.get_iv3()
+    else:
+        encoder = model.Extractor()
+
     for base_fit in ['first', 'last']:
         device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
         all_features = get_features(f'./trained_models/{location}/')
         print(f"Got {len(all_features)} features")
-        labels, imgs, domains = get_data(device)
-        all_embeddings, axis_limits = perform_tsne(device, all_features, imgs, base_fit)
+        labels, imgs, domains = get_data(device, encoder_type)
+        all_embeddings, axis_limits = perform_tsne(device, encoder, all_features, imgs, base_fit)
         make_plots(all_embeddings, axis_limits, labels, domains, location, base_fit)
+        # if folder doesn't exist, then create it
+        if not os.path.exists(f'./saved_plot/{location}/{base_fit}/'):
+            os.makedirs(f'./saved_plot/{location}/{base_fit}/')
         make_gif(f'./saved_plot/{location}/{base_fit}/')
 
 
