@@ -46,7 +46,8 @@ def my_kl(predicted, target):
     """
     target = F.one_hot(target.long(), num_classes=2)
     return -(target * torch.log(predicted.clamp_min(1e-7))).sum(dim=1).mean() - \
-           -1 * (target.clamp(min=1e-7) * torch.log(target.clamp(min=1e-7))).sum(dim=1).mean()
+        -1 * (target.clamp(min=1e-7) * torch.log(target.clamp(min=1e-7))).sum(dim=1).mean()
+
 
 def kl(pred, target):
     target = F.one_hot(target, num_classes=2)
@@ -77,10 +78,12 @@ def save_model(encoder, classifier, discriminator, training_mode, save_name):
         os.makedirs(save_folder)
 
     torch.save(encoder.state_dict(), 'trained_models/encoder_' + str(training_mode) + '_' + str(save_name) + '.pt')
-    torch.save(classifier.state_dict(), 'trained_models/classifier_' + str(training_mode) + '_' + str(save_name) + '.pt')
+    torch.save(classifier.state_dict(),
+               'trained_models/classifier_' + str(training_mode) + '_' + str(save_name) + '.pt')
 
     if training_mode == 'dann':
-        torch.save(discriminator.state_dict(), 'trained_models/discriminator_' + str(training_mode) + '_' + str(save_name) + '.pt')
+        torch.save(discriminator.state_dict(),
+                   'trained_models/discriminator_' + str(training_mode) + '_' + str(save_name) + '.pt')
 
     print('Model is saved !!!')
 
@@ -122,8 +125,15 @@ def plot_embedding(X, y, d, training_mode, save_name, axis_limits=None):
 
 def visualize(device, encoder, training_mode, save_name):
     # Draw 512 samples in test_data
-    source_test_loader = mnist.mnist_test_loader
-    target_test_loader = mnistm.mnistm_test_loader
+    # source_test_loader = mnist.mnist_test_loader
+    # target_test_loader = mnistm.mnistm_test_loader
+    if encoder.__class__.__name__ == 'Inception3':
+        encoder_type = 'inceptionv3'
+    else:
+        encoder_type = 'extractor'
+
+    source_train_loader, _, source_test_loader = mnist.get_source_dataloaders(encoder_type)
+    target_train_loader, _, target_test_loader = mnistm.get_test_dataloaders(encoder_type)
 
     # Get source_test samples
     source_label_list = []
@@ -243,6 +253,7 @@ def get_free_gpu():
     os.system('nvidia-smi -q -d Memory |grep -A4 GPU|grep Free >tmp')
     memory_available = [int(x.split()[2]) for x in open('tmp', 'r').readlines()]
     return np.argmax(memory_available)
+
 
 def set_model_mode(mode='train', models=None):
     for model in models:
