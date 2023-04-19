@@ -13,7 +13,7 @@ def to_colour(img):
 
 
 def get_dataloaders(encoder_type):
-    if encoder_type == 'inception':
+    if encoder_type == 'inceptionv3':
         transform = transforms.Compose([transforms.Resize((299, 299)),
                                         transforms.ToTensor(),
                                         # transforms.Lambda(to_colour),
