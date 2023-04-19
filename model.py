@@ -8,8 +8,8 @@ from torchvision.models.inception import Inception_V3_Weights
 def get_iv3():
     model = models.inception_v3(weights=Inception_V3_Weights.IMAGENET1K_V1)
     model.AuxLogits.fc = nn.Linear(768, 768)
-    model.fc = nn.Linear(2048, (3 * 28 * 28))
-    # model.fc = nn.Identity()
+    # model.fc = nn.Linear(2048, (3 * 28 * 28))
+    model.fc = nn.Identity()
     return model
 
 
@@ -33,10 +33,10 @@ class Extractor(nn.Module):
 
 
 class Classifier(nn.Module):
-    def __init__(self):
+    def __init__(self, in_features=3 * 28 * 28):
         super(Classifier, self).__init__()
         self.classifier = nn.Sequential(
-            nn.Linear(in_features=3 * 28 * 28, out_features=100),
+            nn.Linear(in_features=in_features, out_features=100),
             nn.ReLU(),
             nn.Linear(in_features=100, out_features=100),
             nn.ReLU(),
@@ -49,10 +49,10 @@ class Classifier(nn.Module):
 
 
 class Discriminator(nn.Module):
-    def __init__(self):
+    def __init__(self, in_features=3 * 28 * 28):
         super(Discriminator, self).__init__()
         self.discriminator = nn.Sequential(
-            nn.Linear(in_features=3 * 28 * 28, out_features=100),
+            nn.Linear(in_features=in_features, out_features=100),
             nn.ReLU(),
             nn.Linear(in_features=100, out_features=2)
         )

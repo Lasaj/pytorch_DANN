@@ -12,45 +12,53 @@ def to_colour(img):
     return img
 
 
-transform = transforms.Compose([transforms.Resize((299, 299)),
-                                transforms.ToTensor(),
-                                # transforms.Lambda(to_colour),
-                                transforms.Normalize(np.mean([0.29730626, 0.29918741, 0.27534935]),
-                                                     np.mean([0.32780124, 0.32292358, 0.32056796])),
-                                ])
+def get_dataloaders(encoder_type):
+    if encoder_type == 'inception':
+        transform = transforms.Compose([transforms.Resize((299, 299)),
+                                        transforms.ToTensor(),
+                                        # transforms.Lambda(to_colour),
+                                        transforms.Normalize(np.mean([0.29730626, 0.29918741, 0.27534935]),
+                                                             np.mean([0.32780124, 0.32292358, 0.32056796])),
+                                        ])
+    else:
+        transform = transforms.Compose([transforms.ToTensor(),
+                                        # transforms.Lambda(to_colour),
+                                        transforms.Normalize(np.mean([0.29730626, 0.29918741, 0.27534935]),
+                                                             np.mean([0.32780124, 0.32292358, 0.32056796])),
+                                        ])
 
+    mnist_train_dataset = datasets.MNIST(root='data/pytorch/MNIST', train=True, download=True,
+                                         transform=transform)
+    mnist_valid_dataset = datasets.MNIST(root='data/pytorch/MNIST', train=True, download=True,
+                                         transform=transform)
+    mnist_test_dataset = datasets.MNIST(root='data/pytorch/MNIST', train=False, transform=transform)
 
-mnist_train_dataset = datasets.MNIST(root='data/pytorch/MNIST', train=True, download=True,
-                                     transform=transform)
-mnist_valid_dataset = datasets.MNIST(root='data/pytorch/MNIST', train=True, download=True,
-                                     transform=transform)
-mnist_test_dataset = datasets.MNIST(root='data/pytorch/MNIST', train=False, transform=transform)
+    indices = list(range(len(mnist_train_dataset)))
+    validation_size = 5000
+    train_idx, valid_idx = indices[validation_size:], indices[:validation_size]
+    train_sampler = SubsetRandomSampler(train_idx)
+    valid_sampler = SubsetRandomSampler(valid_idx)
 
-indices = list(range(len(mnist_train_dataset)))
-validation_size = 5000
-train_idx, valid_idx = indices[validation_size:], indices[:validation_size]
-train_sampler = SubsetRandomSampler(train_idx)
-valid_sampler = SubsetRandomSampler(valid_idx)
+    mnist_train_loader = DataLoader(
+        mnist_train_dataset,
+        batch_size=params.batch_size,
+        sampler=train_sampler,
+        num_workers=params.num_workers
+    )
 
-mnist_train_loader = DataLoader(
-    mnist_train_dataset,
-    batch_size=params.batch_size,
-    sampler=train_sampler,
-    num_workers=params.num_workers
-)
+    mnist_valid_loader = DataLoader(
+        mnist_valid_dataset,
+        batch_size=params.batch_size,
+        sampler=train_sampler,
+        num_workers=params.num_workers
+    )
 
-mnist_valid_loader = DataLoader(
-    mnist_valid_dataset,
-    batch_size=params.batch_size,
-    sampler=train_sampler,
-    num_workers=params.num_workers
-)
-
-mnist_test_loader = DataLoader(
-    mnist_test_dataset,
-    batch_size=params.batch_size,
-    num_workers=params.num_workers
-)
+    mnist_test_loader = DataLoader(
+        mnist_test_dataset,
+        batch_size=params.batch_size,
+        num_workers=params.num_workers
+    )
+    return mnist_train_loader, mnist_valid_loader, mnist_test_loader
 
 
 # mnist_train_all = (mnist_train_dataset.train_data[5000:].reshape(55000, 28, 28, 1))

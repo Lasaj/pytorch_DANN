@@ -12,11 +12,11 @@ from utils import set_model_mode
 import params
 
 # Source : 0, Target :1
-source_test_loader = mnist.mnist_test_loader
+# source_test_loader = mnist.mnist_test_loader
 target_test_loader = mnistm.mnistm_test_loader
 
 
-def source_only(device, encoder, classifier, source_train_loader, target_train_loader, save_name):
+def source_only(device, encoder, classifier, source_train_loader, source_test_loader, target_train_loader, save_name):
     print("Source-only training")
     classifier_criterion = nn.CrossEntropyLoss().to(device)
     optimizer = optim.SGD(
@@ -46,6 +46,7 @@ def source_only(device, encoder, classifier, source_train_loader, target_train_l
             if encoder.__class__.__name__ == 'Inception3':
                 source_feature = source_feature[0]
 
+            print(source_feature.shape)
             # Classification loss
             class_pred = classifier(source_feature)
             class_loss = classifier_criterion(class_pred, source_label)
@@ -60,11 +61,13 @@ def source_only(device, encoder, classifier, source_train_loader, target_train_l
 
         if (epoch + 1) % 1 == 0:
             save_model(encoder, classifier, None, 'source', save_name)
-            test.tester(device, encoder, classifier, None, source_test_loader, target_test_loader, training_mode='source_only')
+            test.tester(device, encoder, classifier, None, source_test_loader, target_test_loader,
+                        training_mode='source_only')
     visualize(device, encoder, 'source', save_name)
 
 
-def dann(device, encoder, classifier, discriminator, loss_type, source_train_loader, target_train_loader, save_name):
+def dann(device, encoder, classifier, discriminator, loss_type, source_train_loader, source_test_loader,
+         target_train_loader, save_name):
     print("DANN training")
 
     classifier_criterion = nn.CrossEntropyLoss().to(device)
