@@ -4,8 +4,8 @@ import utils
 import torch.optim as optim
 import torch.nn as nn
 import test
-import mnist
-import mnistm
+# import mnist
+# import mnistm
 from utils import save_model
 from utils import visualize
 from utils import set_model_mode
@@ -13,10 +13,11 @@ import params
 
 # Source : 0, Target :1
 # source_test_loader = mnist.mnist_test_loader
-target_test_loader = mnistm.mnistm_test_loader
+# target_test_loader = mnistm.mnistm_test_loader
 
 
-def source_only(device, encoder, classifier, source_train_loader, source_test_loader, target_train_loader, save_name):
+def source_only(device, encoder, classifier, source_train_loader, source_test_loader, target_train_loader,
+                target_test_loader, save_name):
     print("Source-only training")
     classifier_criterion = nn.CrossEntropyLoss().to(device)
     optimizer = optim.SGD(
@@ -67,7 +68,7 @@ def source_only(device, encoder, classifier, source_train_loader, source_test_lo
 
 
 def dann(device, encoder, classifier, discriminator, loss_type, source_train_loader, source_test_loader,
-         target_train_loader, save_name):
+         target_train_loader, target_test_loader, save_name):
     print("DANN training")
 
     classifier_criterion = nn.CrossEntropyLoss().to(device)

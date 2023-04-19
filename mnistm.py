@@ -1,4 +1,4 @@
-import torchvision.datasets as datasets
+# import torchvision.datasets as datasets
 from torch.utils.data import SubsetRandomSampler, DataLoader
 from torchvision import transforms
 import torch.utils.data as data
@@ -160,42 +160,54 @@ class MNISTM(data.Dataset):
         print('MNISTM Done!')
 
 
-transform = transforms.Compose([transforms.ToTensor(),
-                                transforms.Normalize((0.29730626, 0.29918741, 0.27534935),
-                                                     (0.32780124, 0.32292358, 0.32056796))
-                                ])
+def get_test_dataloaders(encoder_type):
+    transform = transforms.Compose([transforms.ToTensor(),
+                                    transforms.Normalize((0.29730626, 0.29918741, 0.27534935),
+                                                         (0.32780124, 0.32292358, 0.32056796))
+                                    ])
 
-mnistm_train_dataset = MNISTM(root='data/pytorch/MNIST-M', train=True, download=True,
-                              transform=transform)
-mnistm_valid_dataset = MNISTM(root='data/pytorch/MNIST-M', train=True, download=True,
-                              transform=transform)
-mnistm_test_dataset = MNISTM(root='data/pytorch/MNIST-M', train=False, transform=transform)
+    if encoder_type == 'inceptionv3':
+        test_transform = transforms.Compose([transforms.Resize((299, 299)),
+                                        transforms.ToTensor(),
+                                        transforms.Normalize((0.29730626, 0.29918741, 0.27534935),
+                                                             (0.32780124, 0.32292358, 0.32056796))
+                                        ])
+    else:
+        test_transform = transform
 
-indices = list(range(len(mnistm_train_dataset)))
-validation_size = 5000
-train_idx, valid_idx = indices[validation_size:], indices[:validation_size]
-train_sampler = SubsetRandomSampler(train_idx)
-valid_sampler = SubsetRandomSampler(valid_idx)
+    mnistm_train_dataset = MNISTM(root='data/pytorch/MNIST-M', train=True, download=True,
+                                  transform=transform)
+    mnistm_valid_dataset = MNISTM(root='data/pytorch/MNIST-M', train=True, download=True,
+                                  transform=transform)
+    mnistm_test_dataset = MNISTM(root='data/pytorch/MNIST-M', train=False, transform=test_transform)
 
-mnistm_train_loader = DataLoader(
-    mnistm_train_dataset,
-    batch_size=params.batch_size,
-    sampler=train_sampler,
-    num_workers=params.num_workers
-)
+    indices = list(range(len(mnistm_train_dataset)))
+    validation_size = 5000
+    train_idx, valid_idx = indices[validation_size:], indices[:validation_size]
+    train_sampler = SubsetRandomSampler(train_idx)
+    valid_sampler = SubsetRandomSampler(valid_idx)
 
-mnistm_valid_loader = DataLoader(
-    mnistm_valid_dataset,
-    batch_size=params.batch_size,
-    sampler=train_sampler,
-    num_workers=params.num_workers
-)
+    mnistm_train_loader = DataLoader(
+        mnistm_train_dataset,
+        batch_size=params.batch_size,
+        sampler=train_sampler,
+        num_workers=params.num_workers
+    )
 
-mnistm_test_loader = DataLoader(
-    mnistm_test_dataset,
-    batch_size=params.batch_size,
-    num_workers=params.num_workers
-)
+    mnistm_valid_loader = DataLoader(
+        mnistm_valid_dataset,
+        batch_size=params.batch_size,
+        sampler=train_sampler,
+        num_workers=params.num_workers
+    )
+
+    mnistm_test_loader = DataLoader(
+        mnistm_test_dataset,
+        batch_size=params.batch_size,
+        num_workers=params.num_workers
+    )
+
+    return mnistm_train_loader, mnistm_valid_loader, mnistm_test_loader
 
 # print(mnistm_train_dataset.train_data[5000:].shape)
 # mnistm_concat = (mnistm_train_dataset.train_data[5000:])
