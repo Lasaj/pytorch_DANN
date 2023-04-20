@@ -28,7 +28,7 @@ def get_data(device, encoder_type):
     source_label_list = []
     source_img_list = []
     for i, test_data in enumerate(source_test_loader):
-        if i >= 16:  # to get only 512 samples
+        if i >= 1:  # to get only 512 samples
             break
         img, label = test_data
         label = label.numpy()
@@ -38,7 +38,6 @@ def get_data(device, encoder_type):
         source_img_list.append(img)
 
     source_img_list = torch.stack(source_img_list)
-    print(source_img_list.shape)
     if encoder_type == 'inceptionv3':
         source_img_list = source_img_list.view(-1, 3, 299, 299)
     else:
@@ -49,7 +48,7 @@ def get_data(device, encoder_type):
     target_label_list = []
     target_img_list = []
     for i, test_data in enumerate(target_test_loader):
-        if i >= 16:
+        if i >= 8:
             break
         img, label = test_data
         label = label.numpy()
@@ -90,6 +89,8 @@ def perform_tsne(device, encoder, features, imgs, base_fit):
     loaded = torch.load(base, map_location=device)
     encoder.load_state_dict(loaded)
     combined_features = encoder(imgs)
+    if encoder.__class__.__name__ == 'inceptionv2':
+        combined_features = combined_features[0]
     embedding = tsne.fit(combined_features.detach().cpu().numpy())
 
     axis_limits = {'min_x': 0, 'max_x': 0, 'min_y': 0, 'max_y': 0}
@@ -162,7 +163,7 @@ def make_gif(location):
 
 def main():
     encoder_type = "inceptionv3"
-    location = "iv3_anim"
+    location = "iv3_source_only"
     # base_fit = 'last'  # 'last' or 'first'
     # base_fit = 'first'  # 'last' or 'first'
     if encoder_type == "inceptionv3":
