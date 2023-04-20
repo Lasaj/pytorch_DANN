@@ -1,5 +1,5 @@
 import imageio.v2 as imageio
-# from sklearn.manifold import TSNEcc
+# from sklearn.manifold import TSNE
 from utils import plot_embedding
 import torch
 import mnist
@@ -162,7 +162,7 @@ def make_gif(location):
 
 def main():
     encoder_type = "inceptionv3"
-    location = "iv3_source_only"
+    location = "iv3_anim"
     # base_fit = 'last'  # 'last' or 'first'
     # base_fit = 'first'  # 'last' or 'first'
     if encoder_type == "inceptionv3":
