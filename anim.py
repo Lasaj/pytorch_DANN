@@ -89,10 +89,8 @@ def perform_tsne(device, encoder, features, imgs, base_fit):
     loaded = torch.load(base, map_location=device)
     encoder.load_state_dict(loaded)
     combined_features = encoder(imgs)
-    if encoder.__class__.__name__ == 'inceptionv3':
+    if encoder.__class__.__name__ == 'Inception3':
         combined_features = combined_features[0]
-    print(type(combined_features))
-    print(combined_features.shape)
     embedding = tsne.fit(combined_features.detach().cpu().numpy())
 
     axis_limits = {'min_x': 0, 'max_x': 0, 'min_y': 0, 'max_y': 0}
