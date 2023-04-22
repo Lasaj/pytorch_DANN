@@ -17,7 +17,7 @@ Script to run TSNE over saved features to produce an animation
 """
 
 
-def get_data(device, encoder_type):
+def get_data(device, encoder_type, num_batches=1):
     # Draw 512 samples in test_data
     # source_test_loader = mnist.mnist_test_loader
     # target_test_loader = mnistm.mnistm_test_loader
@@ -28,7 +28,7 @@ def get_data(device, encoder_type):
     source_label_list = []
     source_img_list = []
     for i, test_data in enumerate(source_test_loader):
-        if i >= 1:  # to get only 512 samples
+        if i >= num_batches:  # to get only 512 samples
             break
         img, label = test_data
         label = label.numpy()
@@ -48,7 +48,7 @@ def get_data(device, encoder_type):
     target_label_list = []
     target_img_list = []
     for i, test_data in enumerate(target_test_loader):
-        if i >= 8:
+        if i >= num_batches:
             break
         img, label = test_data
         label = label.numpy()
@@ -164,6 +164,7 @@ def make_gif(location):
 def main():
     encoder_type = "inceptionv3"
     location = "iv3_anim"
+    num_batches = 8
     # base_fit = 'last'  # 'last' or 'first'
     # base_fit = 'first'  # 'last' or 'first'
     if encoder_type == "inceptionv3":
@@ -171,12 +172,12 @@ def main():
     else:
         encoder = model.Extractor()
 
-    for base_fit in ['first', 'last']:
+    for base_fit in ['last', 'first']:
         device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-
         all_features = get_features(f'./trained_models/{location}/')
         print(f"Got {len(all_features)} features")
-        labels, imgs, domains = get_data(device, encoder_type)
+        labels, imgs, domains = get_data(device, encoder_type, num_batches=num_batches)
+        print(f"Got {len(imgs)} images")
         all_embeddings, axis_limits = perform_tsne(device, encoder, all_features, imgs, base_fit)
         make_plots(all_embeddings, axis_limits, labels, domains, location, base_fit)
         # if folder doesn't exist, then create it
