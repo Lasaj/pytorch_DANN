@@ -18,9 +18,6 @@ Script to run TSNE over saved features to produce an animation
 
 
 def get_data(device, encoder_type, num_batches=1):
-    # Draw 512 samples in test_data
-    # source_test_loader = mnist.mnist_test_loader
-    # target_test_loader = mnistm.mnistm_test_loader
     _, _, source_test_loader = mnist.get_source_dataloaders(encoder_type)
     _, _, target_test_loader = mnistm.get_test_dataloaders(encoder_type)
 
@@ -166,7 +163,7 @@ def make_gif(location):
 def main():
     encoder_type = "inceptionv3"
     location = "iv3_anim"
-    num_batches = 8
+    num_batches = 1
     # base_fit = 'last'  # 'last' or 'first'
     # base_fit = 'first'  # 'last' or 'first'
     if encoder_type == "inceptionv3":
