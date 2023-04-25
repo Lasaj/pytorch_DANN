@@ -83,7 +83,7 @@ def get_data(device, encoder_type, num_batches=1):
 def perform_tsne(device, encoder, features, imgs, base_fit):
     # encoder = model.Extractor().to(device)
     encoder = encoder.to(device)
-    tsne = TSNE(perplexity=30, n_components=2, n_iter=3000)
+    tsne = TSNE(perplexity=21, n_components=2, n_iter=3000)
 
     base = features[0] if base_fit == 'first' else features[-1]
     loaded = torch.load(base, map_location=device)
@@ -103,6 +103,8 @@ def perform_tsne(device, encoder, features, imgs, base_fit):
 
         print(f"TSNE epoch {epoch}")
         combined_feature = encoder(imgs)  # combined_feature : 1024,2352
+        if encoder.__class__.__name__ == 'Inception3':
+            combined_features = combined_features[0]
         dann_tsne = embedding.transform(combined_feature.detach().cpu().numpy())
 
         all_embeddings.append(dann_tsne)
