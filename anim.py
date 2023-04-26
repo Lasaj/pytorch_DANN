@@ -40,6 +40,7 @@ def get_data(device, encoder_type, num_batches=1):
     else:
         source_img_list = source_img_list.view(-1, 3, 28, 28)
 
+    print("Got source samples")
 
     # Get target_test samples
     target_label_list = []
@@ -63,6 +64,8 @@ def get_data(device, encoder_type, num_batches=1):
     combined_label_list = source_label_list
     combined_label_list.extend(target_label_list)
     combined_img_list = torch.cat((source_img_list, target_img_list), 0)
+
+    print("Got target samples")
 
     # img_files = []
     # for i, img in enumerate(combined_img_list):
@@ -99,10 +102,13 @@ def perform_tsne(device, encoder, features, imgs, base_fit):
         encoder.load_state_dict(torch.load(epoch_features, map_location=device))
 
         print(f"TSNE epoch {epoch}")
-        combined_feature = encoder(imgs)  # combined_feature : 1024,2352
+        combined_features = encoder(imgs)  # combined_feature : 1024,2352
         if encoder.__class__.__name__ == 'Inception3':
             combined_features = combined_features[0]
-        dann_tsne = embedding.transform(combined_feature.detach().cpu().numpy())
+        # Draw 512 samples in test_data
+        # source_test_loader = mnist.mnist_test_loader
+        # target_test_loader = mnistm.mnistm_test_loader
+        dann_tsne = embedding.transform(combined_features.detach().cpu().numpy())
 
         all_embeddings.append(dann_tsne)
         # x_min = min(dann_tsne[:, 0])
