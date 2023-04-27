@@ -55,8 +55,6 @@ def prepare_dfs():
     test_source.columns = headers
     test_target.columns = headers
 
-    print(train_source.dtypes)
-
     return train_source, train_target, test_source, test_target
 
 
@@ -149,7 +147,8 @@ def show_data_dist():
 def main():
 
     train_source_dl, train_target_dl, test_source_dl, test_target_dl = get_data()
-    for s_img, s_label in test_source_dl:
+    print(len(train_source_dl), len(train_target_dl), len(test_source_dl), len(test_target_dl))
+    for s_img, s_label in test_target_dl:
         print(s_img.shape)
         print(s_label)
         break
