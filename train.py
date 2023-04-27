@@ -64,6 +64,8 @@ def source_only(device, encoder, classifier, source_train_loader, source_test_lo
             save_model(encoder, classifier, None, 'source', save_name + '_' + ep_str)
             test.tester(device, encoder, classifier, None, source_test_loader, target_test_loader,
                         training_mode='source_only')
+
+    save_model(encoder, classifier, None, 'source', save_name)
     visualize(device, encoder, 'source', save_name)
 
 

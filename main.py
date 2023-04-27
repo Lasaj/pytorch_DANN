@@ -2,6 +2,7 @@ import torch
 import train
 import mnist
 import mnistm
+import covid_x
 import model
 from datetime import datetime
 
@@ -12,9 +13,11 @@ encoder_type = 'inceptionv3'  # Available: 'inceptionv3', 'extractor'
 
 
 def main():
-    source_train_loader, _, source_test_loader = mnist.get_source_dataloaders(encoder_type)
+    # source_train_loader, _, source_test_loader = mnist.get_source_dataloaders(encoder_type)
     # target_train_loader = mnistm.mnistm_train_loader
-    target_train_loader, _, target_test_loader = mnistm.get_test_dataloaders(encoder_type)
+    # target_train_loader, _, target_test_loader = mnistm.get_test_dataloaders(encoder_type)
+
+    source_train_loader, target_train_loader, source_test_loader, target_test_loader = covid_x.get_data()
 
     # for i in source_train_loader.dataset:
     #     if i[0].shape[0] != 3:
@@ -31,10 +34,10 @@ def main():
         classifier = model.Classifier().to(device)
         discriminator = model.Discriminator().to(device)
 
-    # train.source_only(device, encoder, classifier, source_train_loader, source_test_loader, target_train_loader,
-    #                   target_test_loader, save_name)
-    train.dann(device, encoder, classifier, discriminator, discriminator_loss, source_train_loader, source_test_loader,
-               target_train_loader, target_test_loader, save_name)
+    train.source_only(device, encoder, classifier, source_train_loader, source_test_loader, target_train_loader,
+                      target_test_loader, save_name)
+    # train.dann(device, encoder, classifier, discriminator, discriminator_loss, source_train_loader, source_test_loader,
+    #            target_train_loader, target_test_loader, save_name)
 
     # encoder.load_state_dict(torch.load('./trained_models/encoder_source_230327_1204.pt', map_location=device))
     # visualize(device, encoder, 'source', save_name)
