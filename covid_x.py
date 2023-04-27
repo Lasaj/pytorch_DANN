@@ -48,7 +48,7 @@ def prepare_dfs():
     test_df = pd.read_csv(test_data, sep=" ", header=None)
     test_df.columns = headers
     test_df.label = test_df.label.astype('category')
-    train_df.replace(['negative', 'positive'], [0, 1], inplace=True)
+    test_df.replace(['negative', 'positive'], [0, 1], inplace=True)
 
     test_source = test_df[test_df['source'] != 'rsna'].reset_index(drop=True)
     test_target = test_df[test_df['source'] == 'rsna'].reset_index(drop=True)
@@ -147,11 +147,16 @@ def show_data_dist():
 
 
 def main():
-    train_dl, test_dl = get_data()
-    print(len(train_dl), len(test_dl))
-    # print(train_dl.dataset[0][0].shape)
 
-    show_data_dist()
+    train_source_dl, train_target_dl, test_source_dl, test_target_dl = get_data()
+    for s_img, s_label in test_source_dl:
+        print(s_img.shape)
+        print(s_label)
+        break
+    print(type(s_img))
+    print(type(s_label))
+
+    # show_data_dist()
 
 
 if __name__ == '__main__':
