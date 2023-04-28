@@ -146,14 +146,16 @@ def show_data_dist():
 
 def main():
 
-    train_source_dl, train_target_dl, test_source_dl, test_target_dl = get_data()
-    print(len(train_source_dl), len(train_target_dl), len(test_source_dl), len(test_target_dl))
-    for s_img, s_label in test_target_dl:
-        print(s_img.shape)
-        print(s_label)
-        break
-    print(type(s_img))
-    print(type(s_label))
+    source_train_loader, target_train_loader, source_test_loader, target_test_loader = get_data()
+    # print(len(train_source_dl), len(train_target_dl), len(test_source_dl), len(test_target_dl))
+    # for s_img, s_label in test_target_dl:
+    #     print(s_img.shape)
+    #     print(s_label)
+    # print(type(s_img))
+    # print(type(s_label))
+    for batch_idx, (source_data, target_data) in enumerate(zip(source_train_loader, target_train_loader)):
+        source_image, source_label = source_data
+        print(source_label)
 
     # show_data_dist()
 

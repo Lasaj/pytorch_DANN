@@ -149,7 +149,10 @@ def visualize(device, encoder, training_mode, save_name):
         source_img_list.append(img)
 
     source_img_list = torch.stack(source_img_list)
-    source_img_list = source_img_list.view(-1, 3, 28, 28)
+    if encoder.__class__.__name__ == 'Inception3':
+        source_img_list = source_img_list.view(-1, 3, 299, 299)
+    else:
+        source_img_list = source_img_list.view(-1, 3, 28, 28)
 
     # Get target_test samples
     target_label_list = []
@@ -164,7 +167,10 @@ def visualize(device, encoder, training_mode, save_name):
         target_img_list.append(img)
 
     target_img_list = torch.stack(target_img_list)
-    target_img_list = target_img_list.view(-1, 3, 28, 28)
+    if encoder.__class__.__name__ == 'Inception3':
+        target_img_list = target_img_list.view(-1, 3, 299, 299)
+    else:
+        target_img_list = target_img_list.view(-1, 3, 28, 28)
 
     # Stack source_list + target_list
     combined_label_list = source_label_list
