@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from torchvision import transforms, datasets
 from torch.utils.data import DataLoader, Dataset
 from PIL import Image
-from dython.nominal import associations
+# from dython.nominal import associations
 
 root_dir = '../covid_x/'
 train_data = f'{root_dir}train.txt'
@@ -31,6 +31,20 @@ class CovidXDataset(Dataset):
             image = self.transform(image)
 
         return image, label
+
+
+def make_weights_for_balanced_classes(images, nclasses):
+    count = [0] * nclasses
+    for item in images:
+        count[item[1]] += 1
+    weight_per_class = [0.] * nclasses
+    N = float(sum(count))
+    for i in range(nclasses):
+        weight_per_class[i] = N / float(count[i])
+    weight = [0] * len(images)
+    for idx, val in enumerate(images):
+        weight[idx] = weight_per_class[val[1]]
+    return weight
 
 
 def prepare_dfs():
@@ -58,7 +72,7 @@ def prepare_dfs():
     return train_source, train_target, test_source, test_target
 
 
-def prepare_dls(train_transform, val_transform, train_batch_size, test_batch_size):
+def prepare_dls(train_transform, val_transform, train_batch_size, test_batch_size, n_classes=2):
     train_source, train_target, test_source, test_target = prepare_dfs()
 
     # Get Datasets and DataLoaders for each split
@@ -67,28 +81,36 @@ def prepare_dls(train_transform, val_transform, train_batch_size, test_batch_siz
     test_source_ds = CovidXDataset(test_source, root_dir + 'test/', transform=val_transform)
     test_target_ds = CovidXDataset(test_target, root_dir + 'test/', transform=val_transform)
 
-    train_source_dl = DataLoader(train_source_ds, batch_size=train_batch_size, shuffle=True, drop_last=False)
-    train_target_dl = DataLoader(train_target_ds, batch_size=train_batch_size, shuffle=True, drop_last=False)
-    test_source_dl = DataLoader(test_source_ds, batch_size=test_batch_size, shuffle=True, drop_last=False)
-    test_target_dl = DataLoader(test_target_ds, batch_size=test_batch_size, shuffle=True, drop_last=False)
-
     # train_ds = datasets.ImageFolder(train_dir, transform=train_transform)
     # val_ds = datasets.ImageFolder(val_dir, transform=val_transform)
     # test_ds = datasets.ImageFolder(test_dir, transform=val_transform)
     # test_ds = copy.deepcopy(train_ds)
 
-    # Get weights for training set
-    # weights = make_weights_for_balanced_classes(train_ds, n_classes)
-    # weights = torch.DoubleTensor(weights)
-    # sampler = torch.utils.data.sampler.WeightedRandomSampler(weights, len(weights))
-    # train_dl = DataLoader(train_ds, batch_size=train_batch_size, sampler=sampler)
-    # val_dl = DataLoader(val_ds, batch_size=train_batch_size, sampler=sampler)
+    data = {}
+
+    for data_set in [train_source_ds, train_target_ds, test_source_ds, test_target_ds]:
+        labels = train_source_ds.data_csv.label
+        weights = make_weights_for_balanced_classes(labels, n_classes)
+        weights = torch.DoubleTensor(weights)
+        sampler = torch.utils.data.sampler.WeightedRandomSampler(weights, len(weights))
+        data[data_set] = DataLoader(data_set, batch_size=train_batch_size, sampler=sampler)
+
 
     # source_dl = DataLoader(source_ds, batch_size=train_batch_size, shuffle=True, drop_last=False)
     # target_dl = DataLoader(target_ds, batch_size=train_batch_size, shuffle=True, drop_last=False)
     # train_dl = DataLoader(train_ds, batch_size=train_batch_size, shuffle=True, drop_last=False)
     # val_dl = DataLoader(val_ds, batch_size=train_batch_size, shuffle=False, drop_last=False)
     # test_dl = DataLoader(test_ds, batch_size=test_batch_size, shuffle=False, drop_last=False)
+
+    # train_source_dl = DataLoader(train_source_ds, batch_size=train_batch_size, shuffle=True, drop_last=False)
+    # train_target_dl = DataLoader(train_target_ds, batch_size=train_batch_size, shuffle=True, drop_last=False)
+    # test_source_dl = DataLoader(test_source_ds, batch_size=test_batch_size, shuffle=True, drop_last=False)
+    # test_target_dl = DataLoader(test_target_ds, batch_size=test_batch_size, shuffle=True, drop_last=False)
+
+    train_source_dl = data[train_source_ds]
+    train_target_dl = data[train_target_ds]
+    test_source_dl = data[test_source_ds]
+    test_target_dl = data[test_target_ds]
 
     return train_source_dl, train_target_dl, test_source_dl, test_target_dl
 
