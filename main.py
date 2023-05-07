@@ -27,7 +27,7 @@ def main():
     print(f'Running on {device}')
     if encoder_type == 'inceptionv3':
         encoder = model.get_iv3().to(device)
-        classifier = model.Classifier(in_features=2048).to(device)
+        classifier = model.Classifier(in_features=2048, out_features=2).to(device)
         discriminator = model.Discriminator(in_features=2048).to(device)
     else:
         encoder = model.Extractor().to(device)

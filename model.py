@@ -33,14 +33,14 @@ class Extractor(nn.Module):
 
 
 class Classifier(nn.Module):
-    def __init__(self, in_features=3 * 28 * 28):
+    def __init__(self, in_features=3 * 28 * 28, out_features=10):
         super(Classifier, self).__init__()
         self.classifier = nn.Sequential(
             nn.Linear(in_features=in_features, out_features=100),
             nn.ReLU(),
             nn.Linear(in_features=100, out_features=100),
             nn.ReLU(),
-            nn.Linear(in_features=100, out_features=10)
+            nn.Linear(in_features=100, out_features=out_features)
         )
 
     def forward(self, x):
