@@ -1,3 +1,3 @@
-batch_size = 32
-epochs = 100
+batch_size = 64
+epochs = 1
 num_workers = 2
