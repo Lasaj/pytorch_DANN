@@ -33,16 +33,17 @@ class CovidXDataset(Dataset):
         return image, label
 
 
-def make_weights_for_balanced_classes(images, nclasses):
+def make_weights_for_balanced_classes(labels, nclasses):
+    print(f"{type(labels)}, {labels}")
     count = [0] * nclasses
-    for item in images:
-        count[item[1]] += 1
+    for item in labels:
+        count[item] += 1
     weight_per_class = [0.] * nclasses
     N = float(sum(count))
     for i in range(nclasses):
         weight_per_class[i] = N / float(count[i])
-    weight = [0] * len(images)
-    for idx, val in enumerate(images):
+    weight = [0] * len(labels)
+    for idx, val in enumerate(labels):
         weight[idx] = weight_per_class[val[1]]
     return weight
 
