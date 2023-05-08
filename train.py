@@ -32,10 +32,7 @@ def source_only(device, encoder, classifier, source_train_loader, source_test_lo
         start_steps = epoch * len(source_train_loader)
         total_steps = params.epochs * len(target_train_loader)
 
-        # print(len(target_train_loader), len(source_train_loader))
-        # exit()
-        # for batch_idx, (source_data, target_data) in enumerate(zip(source_train_loader, target_train_loader)):
-        for batch_idx, source_data in enumerate(source_train_loader):
+        for batch_idx, (source_data, target_data) in enumerate(zip(source_train_loader, target_train_loader)):
             source_image, source_label = source_data
             p = float(batch_idx + start_steps) / total_steps
 

@@ -34,7 +34,6 @@ class CovidXDataset(Dataset):
 
 
 def make_weights_for_balanced_classes(labels, nclasses):
-    print(f"{type(labels)}, {labels}")
     count = [0] * nclasses
     for item in labels:
         count[item] += 1
@@ -87,15 +86,20 @@ def prepare_dls(train_transform, val_transform, train_batch_size, test_batch_siz
     # test_ds = datasets.ImageFolder(test_dir, transform=val_transform)
     # test_ds = copy.deepcopy(train_ds)
 
-    data = {}
+    # data = {}
+    #
+    # for data_set in [train_source_ds, train_target_ds, test_source_ds, test_target_ds]:
+    #     labels = train_source_ds.data_csv.label
+    #     weights = make_weights_for_balanced_classes(labels, n_classes)
+    #     weights = torch.DoubleTensor(weights)
+    #     sampler = torch.utils.data.sampler.WeightedRandomSampler(weights, len(weights))
+    #     data[data_set] = DataLoader(data_set, batch_size=train_batch_size, sampler=sampler, drop_last=True)
 
-    for data_set in [train_source_ds, train_target_ds, test_source_ds, test_target_ds]:
-        labels = train_source_ds.data_csv.label
-        weights = make_weights_for_balanced_classes(labels, n_classes)
-        weights = torch.DoubleTensor(weights)
-        sampler = torch.utils.data.sampler.WeightedRandomSampler(weights, len(weights))
-        data[data_set] = DataLoader(data_set, batch_size=train_batch_size, sampler=sampler, drop_last=True)
-
+    source_labels = train_source_ds.data_csv.label
+    source_weights = make_weights_for_balanced_classes(source_labels, n_classes)
+    source_weights = torch.DoubleTensor(source_weights)
+    sampler = torch.utils.data.sampler.WeightedRandomSampler(source_weights, len(source_weights))
+    train_source_dl = DataLoader(train_source_ds, batch_size=train_batch_size, sampler=sampler, drop_last=True)
 
     # source_dl = DataLoader(source_ds, batch_size=train_batch_size, shuffle=True, drop_last=False)
     # target_dl = DataLoader(target_ds, batch_size=train_batch_size, shuffle=True, drop_last=False)
@@ -104,14 +108,14 @@ def prepare_dls(train_transform, val_transform, train_batch_size, test_batch_siz
     # test_dl = DataLoader(test_ds, batch_size=test_batch_size, shuffle=False, drop_last=False)
 
     # train_source_dl = DataLoader(train_source_ds, batch_size=train_batch_size, shuffle=True, drop_last=False)
-    # train_target_dl = DataLoader(train_target_ds, batch_size=train_batch_size, shuffle=True, drop_last=False)
-    # test_source_dl = DataLoader(test_source_ds, batch_size=test_batch_size, shuffle=True, drop_last=False)
-    # test_target_dl = DataLoader(test_target_ds, batch_size=test_batch_size, shuffle=True, drop_last=False)
+    train_target_dl = DataLoader(train_target_ds, batch_size=train_batch_size, shuffle=True, drop_last=False)
+    test_source_dl = DataLoader(test_source_ds, batch_size=test_batch_size, shuffle=True, drop_last=False)
+    test_target_dl = DataLoader(test_target_ds, batch_size=test_batch_size, shuffle=True, drop_last=False)
 
-    train_source_dl = data[train_source_ds]
-    train_target_dl = data[train_target_ds]
-    test_source_dl = data[test_source_ds]
-    test_target_dl = data[test_target_ds]
+    # train_source_dl = data[train_source_ds]
+    # train_target_dl = data[train_target_ds]
+    # test_source_dl = data[test_source_ds]
+    # test_target_dl = data[test_target_ds]
 
     return train_source_dl, train_target_dl, test_source_dl, test_target_dl
 
@@ -176,6 +180,11 @@ def main():
     #     print(s_label)
     # print(type(s_img))
     # print(type(s_label))
+    print(len(source_train_loader), len(target_train_loader))
+    # for i, s in enumerate(source_train_loader):
+    #     print(i)
+    for i, t in enumerate(target_train_loader):
+        print(i)
     for batch_idx, (source_data, target_data) in enumerate(zip(source_train_loader, target_train_loader)):
         source_image, source_label = source_data
         print(source_label)
