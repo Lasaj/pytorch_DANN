@@ -94,7 +94,7 @@ def prepare_dls(train_transform, val_transform, train_batch_size, test_batch_siz
         weights = make_weights_for_balanced_classes(labels, n_classes)
         weights = torch.DoubleTensor(weights)
         sampler = torch.utils.data.sampler.WeightedRandomSampler(weights, len(weights))
-        data[data_set] = DataLoader(data_set, batch_size=train_batch_size, sampler=sampler, drop_last=False)
+        data[data_set] = DataLoader(data_set, batch_size=train_batch_size, sampler=sampler, drop_last=True)
 
 
     # source_dl = DataLoader(source_ds, batch_size=train_batch_size, shuffle=True, drop_last=False)
