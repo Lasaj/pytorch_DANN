@@ -36,8 +36,8 @@ def main():
 
     train.source_only(device, encoder, classifier, source_train_loader, source_test_loader, target_train_loader,
                       target_test_loader, save_name)
-    # train.dann(device, encoder, classifier, discriminator, discriminator_loss, source_train_loader, source_test_loader,
-    #            target_train_loader, target_test_loader, save_name)
+    train.dann(device, encoder, classifier, discriminator, discriminator_loss, source_train_loader, source_test_loader,
+               target_train_loader, target_test_loader, save_name)
 
     # encoder.load_state_dict(torch.load('./trained_models/encoder_source_230327_1204.pt', map_location=device))
     # visualize(device, encoder, 'source', save_name)
