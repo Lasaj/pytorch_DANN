@@ -1,15 +1,16 @@
-import numpy as np
-import matplotlib.pyplot as plt
-from torch.autograd import Function
-from sklearn.manifold import TSNE
-from visualiser import create_bokeh
-from torchvision.utils import save_image
 import torch.nn.functional as F
 import torch
 import mnist
 import mnistm
 import itertools
 import os
+import params
+import numpy as np
+import matplotlib.pyplot as plt
+from torch.autograd import Function
+from sklearn.manifold import TSNE
+from visualiser import create_bokeh
+from torchvision.utils import save_image
 
 
 class ReverseLayerF(Function):
@@ -127,6 +128,8 @@ def visualize(device, encoder, training_mode, save_name):
     # Draw 512 samples in test_data
     # source_test_loader = mnist.mnist_test_loader
     # target_test_loader = mnistm.mnistm_test_loader
+    visualise_batches = params.visualise_batches
+
     if encoder.__class__.__name__ == 'Inception3':
         encoder_type = 'inceptionv3'
     else:
@@ -139,7 +142,7 @@ def visualize(device, encoder, training_mode, save_name):
     source_label_list = []
     source_img_list = []
     for i, test_data in enumerate(source_test_loader):
-        if i >= 16:  # to get only 512 samples
+        if i >= visualise_batches:
             break
         img, label = test_data
         label = label.numpy()
@@ -158,7 +161,7 @@ def visualize(device, encoder, training_mode, save_name):
     target_label_list = []
     target_img_list = []
     for i, test_data in enumerate(target_test_loader):
-        if i >= 16:
+        if i >= visualise_batches:
             break
         img, label = test_data
         label = label.numpy()
@@ -188,7 +191,7 @@ def visualize(device, encoder, training_mode, save_name):
     combined_domain_list = torch.cat((source_domain_list, target_domain_list), 0).to(device)
 
     print("Extract features to draw T-SNE plot...")
-    combined_feature = encoder(combined_img_list)  # combined_feature : 1024,2352
+    combined_feature = encoder(combined_img_list)  # combined_features
 
     tsne = TSNE(perplexity=30, n_components=2, init='pca', n_iter=3000)
     dann_tsne = tsne.fit_transform(combined_feature.detach().cpu().numpy())
@@ -200,6 +203,8 @@ def visualize(device, encoder, training_mode, save_name):
 
 
 def visualize_input(device):
+    visualise_batches = params.visualise_batches
+
     source_test_loader = mnist.mnist_test_loader
     target_test_loader = mnistm.mnistm_test_loader
 
@@ -207,7 +212,7 @@ def visualize_input(device):
     source_label_list = []
     source_img_list = []
     for i, test_data in enumerate(source_test_loader):
-        if i >= 16:  # to get only 512 samples
+        if i >= visualise_batches:
             break
         img, label = test_data
         label = label.numpy()
@@ -223,7 +228,7 @@ def visualize_input(device):
     target_label_list = []
     target_img_list = []
     for i, test_data in enumerate(target_test_loader):
-        if i >= 16:
+        if i >= visualise_batches:
             break
         img, label = test_data
         label = label.numpy()

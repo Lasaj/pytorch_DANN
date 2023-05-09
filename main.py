@@ -4,12 +4,13 @@ import mnist
 import mnistm
 import covid_x
 import model
+import params
 from datetime import datetime
 
 # Training options
 save_name = datetime.now().strftime("%y%m%d_%H%M") + '_IV3'
-discriminator_loss = 'crossentropy'  # Available: 'crossentropy', 'kl'
-encoder_type = 'inceptionv3'  # Available: 'inceptionv3', 'extractor'
+discriminator_loss = params.discriminator_loss
+encoder_type = params.encoder_type
 
 
 def main():
@@ -34,10 +35,12 @@ def main():
         classifier = model.Classifier().to(device)
         discriminator = model.Discriminator().to(device)
 
-    train.source_only(device, encoder, classifier, source_train_loader, source_test_loader, target_train_loader,
-                      target_test_loader, save_name)
-    train.dann(device, encoder, classifier, discriminator, discriminator_loss, source_train_loader, source_test_loader,
-               target_train_loader, target_test_loader, save_name)
+    if params.experiment_type == 'source_only':
+        train.source_only(device, encoder, classifier, source_train_loader, source_test_loader, target_train_loader,
+                          target_test_loader, save_name)
+    else:
+        train.dann(device, encoder, classifier, discriminator, discriminator_loss, source_train_loader,
+                   source_test_loader, target_train_loader, target_test_loader, save_name)
 
     # encoder.load_state_dict(torch.load('./trained_models/encoder_source_230327_1204.pt', map_location=device))
     # visualize(device, encoder, 'source', save_name)
