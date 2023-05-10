@@ -14,15 +14,11 @@ encoder_type = params.encoder_type
 
 
 def main():
-    # source_train_loader, _, source_test_loader = mnist.get_source_dataloaders(encoder_type)
-    # target_train_loader = mnistm.mnistm_train_loader
-    # target_train_loader, _, target_test_loader = mnistm.get_test_dataloaders(encoder_type)
-
-    source_train_loader, target_train_loader, source_test_loader, target_test_loader = covid_x.get_data()
-
-    # for i in source_train_loader.dataset:
-    #     if i[0].shape[0] != 3:
-    #         print(i[0].shape)
+    if params.data_type == 'mnist':
+        source_train_loader, _, source_test_loader = mnist.get_source_dataloaders(encoder_type)
+        target_train_loader, _, target_test_loader = mnistm.get_test_dataloaders(encoder_type)
+    else:
+        source_train_loader, target_train_loader, source_test_loader, target_test_loader = covid_x.get_data()
 
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
     print(f'Running on {device}')
@@ -35,10 +31,9 @@ def main():
         classifier = model.Classifier().to(device)
         discriminator = model.Discriminator().to(device)
 
-    if params.experiment_type == 'source_only':
-        train.source_only(device, encoder, classifier, source_train_loader, source_test_loader, target_train_loader,
-                          target_test_loader, save_name)
-    else:
+    train.source_only(device, encoder, classifier, source_train_loader, source_test_loader, target_train_loader,
+                      target_test_loader, save_name)
+    if params.experiment_type == 'dann':
         train.dann(device, encoder, classifier, discriminator, discriminator_loss, source_train_loader,
                    source_test_loader, target_train_loader, target_test_loader, save_name)
 

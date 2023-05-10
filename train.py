@@ -36,8 +36,8 @@ def source_only(device, encoder, classifier, source_train_loader, source_test_lo
             source_image, source_label = source_data
             p = float(batch_idx + start_steps) / total_steps
 
-            source_image = torch.cat((source_image, source_image, source_image), 1)  # MNIST convert to 3 channel
-            source_image, source_label = source_image.to(device), source_label.to(device)  # 32
+            source_image = torch.cat((source_image, source_image, source_image), 1)  # convert to 3 channel
+            source_image, source_label = source_image.to(device), source_label.to(device)
 
             optimizer = utils.optimizer_scheduler(optimizer=optimizer, p=p)
             optimizer.zero_grad()
@@ -59,11 +59,12 @@ def source_only(device, encoder, classifier, source_train_loader, source_test_lo
                                                                      100. * batch_idx / len(source_train_loader),
                                                                      class_loss.item()))
 
-        if (epoch + 1) % 1 == 0:
+        test.tester(device, encoder, classifier, None, source_test_loader, target_test_loader,
+                    training_mode='source_only')
+
+        if (epoch + 1) % 10 == 0:
             ep_str = '0' + str(epoch) if epoch < 10 else str(epoch)
             save_model(encoder, classifier, None, 'source', save_name + '_' + ep_str)
-            test.tester(device, encoder, classifier, None, source_test_loader, target_test_loader,
-                        training_mode='source_only')
 
     save_model(encoder, classifier, None, 'source', save_name)
     visualize(device, encoder, 'source', save_name)
@@ -146,11 +147,12 @@ def dann(device, encoder, classifier, discriminator, loss_type, source_train_loa
                     domain_loss.item()))
                 # visualize(device, encoder, 'dann', save_name + '_' + ep_str)
 
-        if (epoch + 1) % 1 == 0:
+        test.tester(device, encoder, classifier, discriminator, source_test_loader, target_test_loader,
+                    training_mode='dann')
+
+        if (epoch + 1) % 10 == 0:
             ep_str = '0' + str(epoch) if epoch < 10 else str(epoch)
             save_model(encoder, classifier, discriminator, 'dann', save_name + '_' + ep_str)
-            test.tester(device, encoder, classifier, discriminator, source_test_loader, target_test_loader,
-                        training_mode='dann')
 
     save_model(encoder, classifier, discriminator, 'dann', save_name)
     visualize(device, encoder, 'dann', save_name)
