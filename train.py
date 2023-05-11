@@ -67,7 +67,7 @@ def source_only(device, encoder, classifier, source_train_loader, source_test_lo
             save_model(encoder, classifier, None, 'source', save_name + '_' + ep_str)
 
     save_model(encoder, classifier, None, 'source', save_name)
-    visualize(device, encoder, 'source', save_name)
+    # visualize(device, encoder, 'source', save_name)
 
 
 def dann(device, encoder, classifier, discriminator, loss_type, source_train_loader, source_test_loader,
@@ -155,4 +155,4 @@ def dann(device, encoder, classifier, discriminator, loss_type, source_train_loa
             save_model(encoder, classifier, discriminator, 'dann', save_name + '_' + ep_str)
 
     save_model(encoder, classifier, discriminator, 'dann', save_name)
-    visualize(device, encoder, 'dann', save_name)
+    # visualize(device, encoder, 'dann', save_name)
