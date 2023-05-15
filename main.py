@@ -6,6 +6,7 @@ import covid_x
 import model
 import params
 from datetime import datetime
+from utils import visualize_more
 
 # Training options
 save_name = datetime.now().strftime("%y%m%d_%H%M") + '_IV3'
@@ -31,14 +32,14 @@ def main():
         classifier = model.Classifier().to(device)
         discriminator = model.Discriminator().to(device)
 
-    train.source_only(device, encoder, classifier, source_train_loader, source_test_loader, target_train_loader,
-                      target_test_loader, save_name)
-    if params.experiment_type == 'dann':
-        train.dann(device, encoder, classifier, discriminator, discriminator_loss, source_train_loader,
-                   source_test_loader, target_train_loader, target_test_loader, save_name)
+    # train.source_only(device, encoder, classifier, source_train_loader, source_test_loader, target_train_loader,
+    #                   target_test_loader, save_name)
+    # if params.experiment_type == 'dann':
+    #     train.dann(device, encoder, classifier, discriminator, discriminator_loss, source_train_loader,
+    #                source_test_loader, target_train_loader, target_test_loader, save_name)
 
-    # encoder.load_state_dict(torch.load('./trained_models/encoder_source_230327_1204.pt', map_location=device))
-    # visualize(device, encoder, 'source', save_name)
+    encoder.load_state_dict(torch.load('./trained_models/covidx_both/encoder_source_230512_0801_IV3.pt', map_location=device))
+    visualize_more(device, encoder, 'source', save_name)
 
 
 if __name__ == "__main__":

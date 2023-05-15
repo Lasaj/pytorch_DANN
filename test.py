@@ -1,5 +1,7 @@
 import torch
 import numpy as np
+
+import params
 from utils import set_model_mode
 
 def tester(device, encoder, classifier, discriminator, source_test_loader, target_test_loader, training_mode):
@@ -35,7 +37,8 @@ def tester(device, encoder, classifier, discriminator, source_test_loader, targe
 
         # 2. Target input -> Target Classification
         target_image, target_label = target_data
-        target_image = torch.cat((target_image, target_image, target_image), 1)  # MNIST convert to 3 channel
+        if params.data_type == 'covidx':
+            target_image = torch.cat((target_image, target_image, target_image), 1)  # MNIST convert to 3 channel
         target_image, target_label = target_image.to(device), target_label.to(device)
         target_feature = encoder(target_image)
         # if encoder.__class__.__name__ == 'Inception3':

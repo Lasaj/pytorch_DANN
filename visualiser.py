@@ -14,6 +14,10 @@ Plot TSNE as an interactive html plot using Bokeh
 
 def make_df(feats_embedding, labels, domain, img_paths, name):
     labels = list(itertools.chain.from_iterable(labels))
+    print(len(labels))
+    print(len(domain))
+    print(len(img_paths))
+    print(len(feats_embedding))
 
     samples = {'label': labels,
                'domain': domain.cpu().numpy(),
@@ -72,6 +76,8 @@ def set_colors(vals_for_color, colors=plt.cm.tab20b):
 
 def create_bokeh(dann_tsne, labels, domains, img_paths, title):
     df = make_df(dann_tsne, labels, domains, img_paths, title)
+
+    print(img_paths)
 
     print(df.head())
 

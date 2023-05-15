@@ -6,6 +6,9 @@ import matplotlib.pyplot as plt
 from torchvision import transforms, datasets
 from torch.utils.data import DataLoader, Dataset
 from PIL import Image
+
+import params
+
 # from dython.nominal import associations
 
 root_dir = '../covid_x/'
@@ -72,7 +75,7 @@ def prepare_dfs():
     return train_source, train_target, test_source, test_target
 
 
-def prepare_dls(train_transform, val_transform, train_batch_size, test_batch_size, n_classes=2):
+def prepare_dls(train_transform, val_transform, train_batch_size, test_batch_size, n_classes=2, shuffle=True):
     train_source, train_target, test_source, test_target = prepare_dfs()
 
     # Get Datasets and DataLoaders for each split
@@ -107,10 +110,11 @@ def prepare_dls(train_transform, val_transform, train_batch_size, test_batch_siz
     # val_dl = DataLoader(val_ds, batch_size=train_batch_size, shuffle=False, drop_last=False)
     # test_dl = DataLoader(test_ds, batch_size=test_batch_size, shuffle=False, drop_last=False)
 
-    # train_source_dl = DataLoader(train_source_ds, batch_size=train_batch_size, shuffle=True, drop_last=False)
-    train_target_dl = DataLoader(train_target_ds, batch_size=train_batch_size, shuffle=True, drop_last=False)
-    test_source_dl = DataLoader(test_source_ds, batch_size=test_batch_size, shuffle=True, drop_last=False)
-    test_target_dl = DataLoader(test_target_ds, batch_size=test_batch_size, shuffle=True, drop_last=False)
+    if not shuffle:
+        train_source_dl = DataLoader(train_source_ds, batch_size=train_batch_size, shuffle=shuffle, drop_last=False)
+    train_target_dl = DataLoader(train_target_ds, batch_size=train_batch_size, shuffle=shuffle, drop_last=False)
+    test_source_dl = DataLoader(test_source_ds, batch_size=test_batch_size, shuffle=shuffle, drop_last=False)
+    test_target_dl = DataLoader(test_target_ds, batch_size=test_batch_size, shuffle=shuffle, drop_last=False)
 
     # train_source_dl = data[train_source_ds]
     # train_target_dl = data[train_target_ds]
@@ -120,7 +124,7 @@ def prepare_dls(train_transform, val_transform, train_batch_size, test_batch_siz
     return train_source_dl, train_target_dl, test_source_dl, test_target_dl
 
 
-def get_data(transform=True):
+def get_data(transform=True, shuffle=True):
     # train_df, val_df, test_df = prepare_dfs(data_csv)
     train_transform, val_transform = None, None
 
@@ -145,7 +149,7 @@ def get_data(transform=True):
                                             # transforms.Normalize(img_mean, img_std)
                                             ])
 
-    return prepare_dls(train_transform, val_transform, 32, 32)
+    return prepare_dls(train_transform, val_transform, params.batch_size, params.batch_size, shuffle=shuffle)
 
 
 def show_data_dist():
@@ -181,13 +185,18 @@ def main():
     # print(type(s_img))
     # print(type(s_label))
     print(len(source_train_loader), len(target_train_loader))
+    for img in source_test_loader:
+        print(img[0][0].shape)
+        plt.imshow(img[0][0].permute(1, 2, 0))
+        plt.show()
+        exit()
     # for i, s in enumerate(source_train_loader):
     #     print(i)
-    for i, t in enumerate(target_train_loader):
-        print(i)
-    for batch_idx, (source_data, target_data) in enumerate(zip(source_train_loader, target_train_loader)):
-        source_image, source_label = source_data
-        print(source_label)
+    # for i, t in enumerate(target_train_loader):
+    #     print(i)
+    # for batch_idx, (source_data, target_data) in enumerate(zip(source_train_loader, target_train_loader)):
+    #     source_image, source_label = source_data
+    #     print(source_label)
 
     # show_data_dist()
 

@@ -2,13 +2,15 @@ import torch.nn.functional as F
 import torch
 import mnist
 import mnistm
+import covid_x
 import itertools
 import os
 import params
 import numpy as np
 import matplotlib.pyplot as plt
 from torch.autograd import Function
-from sklearn.manifold import TSNE
+# from sklearn.manifold import TSNE
+from openTSNE import TSNE
 from visualiser import create_bokeh
 from torchvision.utils import save_image
 
@@ -129,14 +131,18 @@ def visualize(device, encoder, training_mode, save_name):
     # source_test_loader = mnist.mnist_test_loader
     # target_test_loader = mnistm.mnistm_test_loader
     visualise_batches = params.visualise_batches
+    batch_size = params.batch_size
 
     if encoder.__class__.__name__ == 'Inception3':
         encoder_type = 'inceptionv3'
     else:
         encoder_type = 'extractor'
 
-    source_train_loader, _, source_test_loader = mnist.get_source_dataloaders(encoder_type)
-    target_train_loader, _, target_test_loader = mnistm.get_test_dataloaders(encoder_type)
+    if params.data_type == 'mnist':
+        source_train_loader, _, source_test_loader = mnist.get_source_dataloaders(encoder_type)
+        target_train_loader, _, target_test_loader = mnistm.get_test_dataloaders(encoder_type)
+    else:
+        source_train_loader, target_train_loader, source_test_loader, target_test_loader = covid_x.get_data()
 
     # Get source_test samples
     source_label_list = []
@@ -147,7 +153,7 @@ def visualize(device, encoder, training_mode, save_name):
         img, label = test_data
         label = label.numpy()
         img = img.to(device)
-        img = torch.cat((img, img, img), 1)  # MNIST channel 1 -> 3
+        img = torch.cat((img, img, img), 1)
         source_label_list.append(label)
         source_img_list.append(img)
 
@@ -166,6 +172,8 @@ def visualize(device, encoder, training_mode, save_name):
         img, label = test_data
         label = label.numpy()
         img = img.to(device)
+        if params.data_type == 'covidx':
+            img = torch.cat((img, img, img), 1)
         target_label_list.append(label)
         target_img_list.append(img)
 
@@ -178,23 +186,27 @@ def visualize(device, encoder, training_mode, save_name):
     # Stack source_list + target_list
     combined_label_list = source_label_list
     combined_label_list.extend(target_label_list)
-    combined_img_list = torch.cat((source_img_list, target_img_list), 0)
 
+    combined_img_list = torch.cat((source_img_list, target_img_list), 0)
     img_files = []
     for i, img in enumerate(combined_img_list):
+        # plt.imshow(img.permute(1, 2, 0))
+        # plt.show()
         file_name = f'./{training_mode}_imgs/{i}.png'
         save_image(img, file_name)
         img_files.append(file_name)
 
-    source_domain_list = torch.zeros(512).type(torch.LongTensor)
-    target_domain_list = torch.ones(512).type(torch.LongTensor)
+    source_domain_list = torch.zeros(visualise_batches * batch_size).type(torch.LongTensor)
+    target_domain_list = torch.ones(visualise_batches * batch_size).type(torch.LongTensor)
     combined_domain_list = torch.cat((source_domain_list, target_domain_list), 0).to(device)
 
     print("Extract features to draw T-SNE plot...")
-    combined_feature = encoder(combined_img_list)  # combined_features
+    combined_features = encoder(combined_img_list)  # combined_features
+    if encoder.__class__.__name__ == 'Inception3':
+        combined_features = combined_features[0]
 
     tsne = TSNE(perplexity=30, n_components=2, init='pca', n_iter=3000)
-    dann_tsne = tsne.fit_transform(combined_feature.detach().cpu().numpy())
+    dann_tsne = tsne.fit_transform(combined_features.detach().cpu().numpy())
 
     print('Draw plot ...')
     save_name = save_name + '_' + str(training_mode)
@@ -273,3 +285,96 @@ def set_model_mode(mode='train', models=None):
             model.train()
         else:
             model.eval()
+
+def visualize_more(device, encoder, training_mode, save_name):
+    # Draw 512 samples in test_data
+    visualise_batches = params.visualise_batches
+    batch_size = params.batch_size
+
+    if encoder.__class__.__name__ == 'Inception3':
+        encoder_type = 'inceptionv3'
+    else:
+        encoder_type = 'extractor'
+
+    if params.data_type == 'mnist':
+        source_train_loader, _, source_test_loader = mnist.get_source_dataloaders(encoder_type)
+        target_train_loader, _, target_test_loader = mnistm.get_test_dataloaders(encoder_type)
+    else:
+        source_train_loader, target_train_loader, source_test_loader, target_test_loader = covid_x.get_data()
+
+    tsne = TSNE(perplexity=21, n_components=2, n_iter=3000)
+    combined_label_list, combined_domain_list, img_files = [], [], []
+
+    for batch, (source_data, target_data) in enumerate(zip(source_test_loader, target_test_loader)):
+        if batch >= visualise_batches:
+            break
+
+        # Get source_test samples
+        source_label_list = []
+        source_img_list = []
+        source_img, source_label = source_data
+        source_label = source_label.numpy()
+        source_img = source_img.to(device)
+        source_img = torch.cat((source_img, source_img, source_img), 1)
+        source_label_list.append(source_label)
+        source_img_list.append(source_img)
+
+        source_img_list = torch.stack(source_img_list)
+        if encoder.__class__.__name__ == 'Inception3':
+            source_img_list = source_img_list.view(-1, 3, 299, 299)
+        else:
+            source_img_list = source_img_list.view(-1, 3, 28, 28)
+
+        # Get target_test samples
+        target_label_list = []
+        target_img_list = []
+        target_img, target_label = target_data
+        target_label = target_label.numpy()
+        target_img = target_img.to(device)
+        if params.data_type == 'covidx':
+            target_img = torch.cat((target_img, target_img, target_img), 1)
+        target_label_list.append(target_label)
+        target_img_list.append(target_img)
+
+        target_img_list = torch.stack(target_img_list)
+        if encoder.__class__.__name__ == 'Inception3':
+            target_img_list = target_img_list.view(-1, 3, 299, 299)
+        else:
+            target_img_list = target_img_list.view(-1, 3, 28, 28)
+
+        # Stack source_list + target_list
+        batch_label_list = source_label_list
+        batch_label_list.extend(target_label_list)
+
+        batch_img_list = torch.cat((source_img_list, target_img_list), 0)
+        for i, img in enumerate(batch_img_list):
+            # plt.imshow(img.permute(1, 2, 0))
+            # plt.show()
+            file_name = f'./{training_mode}_imgs/{batch}_{i}.png'
+            save_image(img, file_name)
+            img_files.append(file_name)
+
+        source_domain_list = torch.zeros(visualise_batches * batch_size).type(torch.LongTensor)
+        target_domain_list = torch.ones(visualise_batches * batch_size).type(torch.LongTensor)
+        batch_domain_list = torch.cat((source_domain_list, target_domain_list), 0).to(device)
+
+        print("Extract features to draw T-SNE plot...")
+        batch_features = encoder(batch_img_list)  # combined_features
+        if encoder.__class__.__name__ == 'Inception3':
+            batch_features = batch_features[0]
+
+        combined_label_list.extend(batch_label_list)
+        combined_domain_list.extend(batch_domain_list)
+
+        if batch == 0:
+            embedding = tsne.fit(batch_features.detach().cpu().numpy())
+        dann_tsne = embedding.transform(batch_features.detach().cpu().numpy())
+
+
+    print('Draw plot ...')
+    save_name = save_name + '_' + str(training_mode)
+    if params.data_type == 'mnist':
+        plot_embedding(dann_tsne, combined_label_list, combined_domain_list, training_mode, save_name)
+    create_bokeh(dann_tsne, combined_label_list, combined_domain_list, img_files, f"{save_name}_{training_mode}")
+
+
