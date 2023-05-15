@@ -286,6 +286,7 @@ def set_model_mode(mode='train', models=None):
         else:
             model.eval()
 
+
 def visualize_more(device, encoder, training_mode, save_name):
     # Draw 512 samples in test_data
     visualise_batches = params.visualise_batches
@@ -370,11 +371,9 @@ def visualize_more(device, encoder, training_mode, save_name):
             embedding = tsne.fit(batch_features.detach().cpu().numpy())
         dann_tsne = embedding.transform(batch_features.detach().cpu().numpy())
 
-
+    combined_domain_list = [int(x) for x in combined_domain_list]
     print('Draw plot ...')
     save_name = save_name + '_' + str(training_mode)
     if params.data_type == 'mnist':
         plot_embedding(dann_tsne, combined_label_list, combined_domain_list, training_mode, save_name)
     create_bokeh(dann_tsne, combined_label_list, combined_domain_list, img_files, f"{save_name}_{training_mode}")
-
-
