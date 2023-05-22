@@ -13,17 +13,6 @@ Plot TSNE as an interactive html plot using Bokeh
 """
 
 def make_df(feats_embedding, labels, domain, ids, data_csv, img_paths, preds, name):
-    # print(len(feats_embedding))
-    # print(feats_embedding)
-    # print(len(labels))
-    # print(labels)
-    # print(len(domain))
-    # print(len(ids))
-    # print(ids)
-    # print(domain)
-    # print(len(preds))
-    # print(len(img_paths))
-    # exit()
     accurate = [1 if x == y else 0 for x, y in zip(labels, preds)]
 
     samples = {'label': labels,
@@ -39,19 +28,10 @@ def make_df(feats_embedding, labels, domain, ids, data_csv, img_paths, preds, na
     sample_df = pd.DataFrame(samples)
 
     data_csv = data_csv.drop(columns=['label'])
-    # data_csv['source_code'] = data_csv['source'].astype('category').cat.codes
-    # print(data_csv['source_code'].unique())
 
     sample_df = pd.merge(sample_df, data_csv, how="inner", on=["file"])
     sample_df.to_csv(f"interactive_plots/{name}_samples.csv")
     print(sample_df.columns)
-
-    # sample_df = pd.DataFrame
-    #
-    # sample_df['x_feats'] = feats_embedding[:, 0]
-    # sample_df['y_feats'] = feats_embedding[:, 1]
-    # sample_df['label'] = labels
-    # sample_df['domain'] = domain
 
     vars = ['label', 'domain', 'pred', 'accurate', 'source']
     var_cats = []
@@ -139,7 +119,7 @@ def create_bokeh(dann_tsne, labels, domains, ids, data_csv, img_paths, preds, ti
                min_width=figure_size + 500, min_height=figure_size,
                toolbar_location="above", title=title)
 
-    p.circle('x_feats', 'y_feats', fill_color='color_data', legend_field='label', source=source,
+    p.circle('x_feats', 'y_feats', fill_color='color_data', legend_field='source', source=source,
              line_color='black', size=10, alpha=0.7)
 
     p.xaxis.visible = False
@@ -159,6 +139,9 @@ def create_bokeh(dann_tsne, labels, domains, ids, data_csv, img_paths, preds, ti
         legend.label.field = cb_obj.origin.label;
         source.change.emit();
     """)
+
+    print(df.columns)
+    print(df.source.unique())
 
     toggle1 = Button(label="label", name="color_label_code")
     toggle2 = Button(label="domain", name="color_domain_code")

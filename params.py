@@ -6,4 +6,4 @@ encoder_type = 'inceptionv3'  # Available: 'inceptionv3', 'extractor'
 experiment_type = 'dann'  # Available: 'dann', 'source_only'
 data_type = 'covidx'  # Available: 'mnist', 'covidx'
 
-visualise_batches = 16  # n * batch_size for TSNE sample (16 works for MNIST)
+visualise_batches = 1  # n * batch_size for TSNE sample (16 works for MNIST)

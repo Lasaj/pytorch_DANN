@@ -42,9 +42,9 @@ def main():
     classifier.load_state_dict(torch.load('./trained_models/covidx_both/classifier_source_230512_0801_IV3.pt', map_location=device))
     visualize_more(device, encoder, 'source', save_name, classifier)
 
-    encoder.load_state_dict(torch.load('./trained_models/covidx_both/encoder_dann_230512_0801_IV3.pt', map_location=device))
-    classifier.load_state_dict(torch.load('./trained_models/covidx_both/classifier_dann_230512_0801_IV3.pt', map_location=device))
-    visualize_more(device, encoder, 'dann', save_name, classifier)
+    # encoder.load_state_dict(torch.load('./trained_models/covidx_both/encoder_dann_230512_0801_IV3.pt', map_location=device))
+    # classifier.load_state_dict(torch.load('./trained_models/covidx_both/classifier_dann_230512_0801_IV3.pt', map_location=device))
+    # visualize_more(device, encoder, 'dann', save_name, classifier)
 
 
 if __name__ == "__main__":
