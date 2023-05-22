@@ -12,17 +12,40 @@ from bokeh.layouts import column, row
 Plot TSNE as an interactive html plot using Bokeh
 """
 
-def make_df(feats_embedding, labels, domain, img_paths, name):
-    labels = list(itertools.chain.from_iterable(labels))
+def make_df(feats_embedding, labels, domain, ids, data_csv, img_paths, preds, name):
+    # print(len(feats_embedding))
+    # print(feats_embedding)
+    # print(len(labels))
+    # print(labels)
+    # print(len(domain))
+    # print(len(ids))
+    # print(ids)
+    # print(domain)
+    # print(len(preds))
+    # print(len(img_paths))
+    # exit()
+    accurate = [1 if x == y else 0 for x, y in zip(labels, preds)]
 
     samples = {'label': labels,
                'domain': domain,
+               'file': ids,
                'img_paths': img_paths,
+               'pred': preds,
+               'accurate': accurate,
                'x_feats': feats_embedding[:, 0],
                'y_feats': feats_embedding[:, 1]
                }
 
     sample_df = pd.DataFrame(samples)
+
+    data_csv = data_csv.drop(columns=['label'])
+    # data_csv['source_code'] = data_csv['source'].astype('category').cat.codes
+    # print(data_csv['source_code'].unique())
+
+    sample_df = pd.merge(sample_df, data_csv, how="inner", on=["file"])
+    sample_df.to_csv(f"interactive_plots/{name}_samples.csv")
+    print(sample_df.columns)
+
     # sample_df = pd.DataFrame
     #
     # sample_df['x_feats'] = feats_embedding[:, 0]
@@ -30,23 +53,28 @@ def make_df(feats_embedding, labels, domain, img_paths, name):
     # sample_df['label'] = labels
     # sample_df['domain'] = domain
 
-    vars = ['label', 'domain']
+    vars = ['label', 'domain', 'pred', 'accurate', 'source']
     var_cats = []
-
-    print(sample_df)
 
     for var in vars:
         sample_df[var] = sample_df[var].astype('category')
         var_cats.append(f'{var}_code')
+
 
     sample_df[var_cats] = sample_df[vars].apply(lambda x: x.cat.codes)
 
     for col in var_cats:
         my_col_string = 'color_' + col
         sample_df[my_col_string] = set_colors(sample_df[col].values, plt.cm.Set1)
-
     sample_df['color_data'] = set_colors(sample_df.label_code)
-    sample_df.to_csv(f"interactive_plots/{name}_samples.csv")
+
+    label_dict = {0: 'No Covid', 1: 'Covid'}
+    sample_df['label_verbose'] = sample_df['label'].map(label_dict)
+    domain_dict = {0: 'Source', 1: 'Target'}
+    sample_df['domain_verbose'] = sample_df['domain'].map(domain_dict)
+    acc_dict = {0: 'Incorrect', 1: 'Correct'}
+    sample_df['accurate_verbose'] = sample_df['accurate'].map(acc_dict)
+
     return sample_df
 
 
@@ -72,25 +100,24 @@ def set_colors(vals_for_color, colors=plt.cm.tab20b):
     return colors_hex
 
 
-def create_bokeh(dann_tsne, labels, domains, img_paths, title):
-    df = make_df(dann_tsne, labels, domains, img_paths, title)
-
-    print(img_paths)
-
-    print(df.head())
+def create_bokeh(dann_tsne, labels, domains, ids, data_csv, img_paths, preds, title):
+    df = make_df(dann_tsne, labels, domains, ids, data_csv, img_paths, preds, title)
 
     output_file(f"interactive_plots/{title}.html")
     figure_size = 500
 
-
     hover = HoverTool(
         tooltips="""
             <div>
-                <span style="font-size: 10px;">Label: @label</span>
+                <span style="font-size: 10px;">Label: @label_verbose</span>
                 <br>
-                <span style="font-size: 10px;">domain: @domain</span>
+                <span style="font-size: 10px;">Domain: @domain_verbose</span>
                 <br>
-                <span style="font-size: 10px;">domain: @domain</span>
+                <span style="font-size: 10px;">Pred: @pred</span>
+                <br>
+                <span style="font-size: 10px;">Accurate: @accurate_verbose</span>
+                <br>
+                <span style="font-size: 10px;">Source: @source</span>
                 <br>
             </div>
             <div>
@@ -103,7 +130,7 @@ def create_bokeh(dann_tsne, labels, domains, img_paths, title):
             """
     )
 
-    df['color_data'] = set_colors(df.label)
+    df['color_data'] = set_colors(df.source_code)
 
     source = ColumnDataSource(data=df.to_dict('list'))
     source2 = ColumnDataSource(data=df.to_dict('list'))
@@ -122,7 +149,7 @@ def create_bokeh(dann_tsne, labels, domains, img_paths, title):
     p.add_layout(xaxis, 'below')
     p.add_layout(yaxis, 'left')
     p.background_fill_color = "#dddddd"
-    p.legend.click_policy = "hide"
+    # p.legend.click_policy = "hide"
 
     callback = CustomJS(args=dict(source=source, source2=source2, xaxis=xaxis, yaxis=yaxis, legend=p.legend.items[0]),
                         code="""
@@ -135,9 +162,15 @@ def create_bokeh(dann_tsne, labels, domains, img_paths, title):
 
     toggle1 = Button(label="label", name="color_label_code")
     toggle2 = Button(label="domain", name="color_domain_code")
+    toggle3 = Button(label="pred", name="color_pred_code")
+    toggle4 = Button(label="accurate", name="color_accurate_code")
+    toggle5 = Button(label="source", name="color_source_code")
 
     toggle1.js_on_click(callback)
     toggle2.js_on_click(callback)
+    toggle3.js_on_click(callback)
+    toggle4.js_on_click(callback)
+    toggle5.js_on_click(callback)
 
-    layout = column(p, row(toggle1, toggle2))
+    layout = column(p, row(toggle1, toggle2, toggle3, toggle4, toggle5))
     show(layout)

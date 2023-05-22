@@ -33,7 +33,7 @@ class CovidXDataset(Dataset):
         if self.transform:
             image = self.transform(image)
 
-        return image, label
+        return image, label, self.data_csv.iloc[idx, 1]
 
 
 def make_weights_for_balanced_classes(labels, nclasses):

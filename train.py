@@ -33,7 +33,11 @@ def source_only(device, encoder, classifier, source_train_loader, source_test_lo
         total_steps = params.epochs * len(target_train_loader)
 
         for batch_idx, (source_data, target_data) in enumerate(zip(source_train_loader, target_train_loader)):
-            source_image, source_label = source_data
+            if params.data_type == 'covidx':
+                source_image, source_label, _ = source_data
+            else:
+                source_image, source_label = source_data
+
             p = float(batch_idx + start_steps) / total_steps
 
             source_image = torch.cat((source_image, source_image, source_image), 1)  # convert to 3 channel
@@ -93,8 +97,12 @@ def dann(device, encoder, classifier, discriminator, loss_type, source_train_loa
 
         for batch_idx, (source_data, target_data) in enumerate(zip(source_train_loader, target_train_loader)):
 
-            source_image, source_label = source_data
-            target_image, target_label = target_data
+            if params.data_type == 'covidx':
+                source_image, source_label, _ = source_data
+                target_image, target_label, _ = target_data
+            else:
+                source_image, source_label = source_data
+                target_image, target_label = target_data
 
             p = float(batch_idx + start_steps) / total_steps
             alpha = 2. / (1. + np.exp(-10 * p)) - 1

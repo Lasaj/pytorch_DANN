@@ -7,6 +7,7 @@ import itertools
 import os
 import params
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 from torch.autograd import Function
 # from sklearn.manifold import TSNE
@@ -207,6 +208,7 @@ def visualize(device, encoder, training_mode, save_name):
 
     tsne = TSNE(perplexity=30, n_components=2, init='pca', n_iter=3000)
     dann_tsne = tsne.fit_transform(combined_features.detach().cpu().numpy())
+    print(dann_tsne[0])
 
     print('Draw plot ...')
     save_name = save_name + '_' + str(training_mode)
@@ -287,7 +289,7 @@ def set_model_mode(mode='train', models=None):
             model.eval()
 
 
-def visualize_more(device, encoder, training_mode, save_name):
+def visualize_more(device, encoder, training_mode, save_name, classifier=None):
     # Draw 512 samples in test_data
     visualise_batches = params.visualise_batches
     batch_size = params.batch_size
@@ -303,17 +305,28 @@ def visualize_more(device, encoder, training_mode, save_name):
     else:
         source_train_loader, target_train_loader, source_test_loader, target_test_loader = covid_x.get_data()
 
-    tsne = TSNE(perplexity=21, n_components=2, n_iter=3000)
-    combined_label_list, combined_domain_list, img_files = [], [], []
+    tsne = TSNE(perplexity=10.33, n_components=2, n_iter=3000)
+    combined_label_list, combined_domain_list, combined_id_list, img_files, embeddings, preds = [], [], [], [], [], []
 
     for batch, (source_data, target_data) in enumerate(zip(source_test_loader, target_test_loader)):
+    # for batch, (source_data, target_data) in enumerate(zip(source_train_loader, target_train_loader)):
+
+        source_csv = source_test_loader.dataset.data_csv
+        target_csv = target_test_loader.dataset.data_csv
+        combined_csv = pd.concat([source_csv, target_csv])
+
         if batch >= visualise_batches:
             break
 
         # Get source_test samples
         source_label_list = []
         source_img_list = []
-        source_img, source_label = source_data
+        source_id_list = []
+        if params.data_type == 'covidx':
+            source_img, source_label, source_id = source_data
+            source_id_list.append(source_id)
+        else:
+            source_img, source_label = source_data
         source_label = source_label.numpy()
         source_img = source_img.to(device)
         source_img = torch.cat((source_img, source_img, source_img), 1)
@@ -329,7 +342,13 @@ def visualize_more(device, encoder, training_mode, save_name):
         # Get target_test samples
         target_label_list = []
         target_img_list = []
-        target_img, target_label = target_data
+        target_id_list = []
+
+        if params.data_type == 'covidx':
+            target_img, target_label, target_id = target_data
+            target_id_list.append(target_id)
+        else:
+            target_img, target_label = target_data
         target_label = target_label.numpy()
         target_img = target_img.to(device)
         if params.data_type == 'covidx':
@@ -344,8 +363,8 @@ def visualize_more(device, encoder, training_mode, save_name):
             target_img_list = target_img_list.view(-1, 3, 28, 28)
 
         # Stack source_list + target_list
-        batch_label_list = source_label_list
-        batch_label_list.extend(target_label_list)
+        batch_label_list = list(source_label_list[0])
+        batch_label_list.extend(list(target_label_list[0]))
 
         batch_img_list = torch.cat((source_img_list, target_img_list), 0)
         for i, img in enumerate(batch_img_list):
@@ -355,14 +374,26 @@ def visualize_more(device, encoder, training_mode, save_name):
             save_image(img, file_name)
             img_files.append(file_name)
 
-        source_domain_list = torch.zeros(visualise_batches * batch_size).type(torch.LongTensor)
-        target_domain_list = torch.ones(visualise_batches * batch_size).type(torch.LongTensor)
-        batch_domain_list = torch.cat((source_domain_list, target_domain_list), 0).to(device)
+        # source_domain_list = torch.zeros(visualise_batches * batch_size).type(torch.LongTensor)
+        # target_domain_list = torch.ones(visualise_batches * batch_size).type(torch.LongTensor)
+        # batch_domain_list = torch.cat((source_domain_list, target_domain_list), 0).to(device)
+        source_domain_list = [0] * len(source_img_list)
+        target_domain_list = [1] * len(target_img_list)
+        batch_domain_list = source_domain_list + target_domain_list
+
+        if params.data_type == 'covidx':
+            batch_id_list = list(source_id_list[0]) + list(target_id_list[0])
+            combined_id_list.extend(batch_id_list)
 
         print("Extract features to draw T-SNE plot...")
         batch_features = encoder(batch_img_list)  # combined_features
         if encoder.__class__.__name__ == 'Inception3':
             batch_features = batch_features[0]
+
+        if classifier is not None:
+            batch_output = classifier(batch_features)
+            batch_pred = batch_output.data.max(1, keepdim=True)[1]
+            preds.extend(batch_pred)
 
         combined_label_list.extend(batch_label_list)
         combined_domain_list.extend(batch_domain_list)
@@ -370,10 +401,17 @@ def visualize_more(device, encoder, training_mode, save_name):
         if batch == 0:
             embedding = tsne.fit(batch_features.detach().cpu().numpy())
         dann_tsne = embedding.transform(batch_features.detach().cpu().numpy())
+        embeddings.extend(dann_tsne)
+
+        del(batch_features)
 
     combined_domain_list = [int(x) for x in combined_domain_list]
+    preds = [int(x) for x in preds]
+    embeddings = np.array([[x[0], x[1]] for x in embeddings])
+
     print('Draw plot ...')
     save_name = save_name + '_' + str(training_mode)
     if params.data_type == 'mnist':
-        plot_embedding(dann_tsne, combined_label_list, combined_domain_list, training_mode, save_name)
-    create_bokeh(dann_tsne, combined_label_list, combined_domain_list, img_files, f"{save_name}_{training_mode}")
+        plot_embedding(embeddings, combined_label_list, combined_domain_list, training_mode, save_name)
+    else:
+        create_bokeh(embeddings, combined_label_list, combined_domain_list, combined_id_list, combined_csv, img_files, preds, f"{save_name}_{training_mode}")
