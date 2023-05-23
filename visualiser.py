@@ -131,22 +131,28 @@ def create_bokeh(dann_tsne, labels, domains, ids, data_csv, img_paths, preds, ti
     p.background_fill_color = "#dddddd"
     # p.legend.click_policy = "hide"
 
-    callback = CustomJS(args=dict(source=source, source2=source2, xaxis=xaxis, yaxis=yaxis, legend=p.legend.items[0]),
+    callback = CustomJS(args=dict(source=source, source2=source2, xaxis=xaxis, yaxis=yaxis, legend=p.legend.items),
                         code="""
         var data = source.data;
         var data2 = source2.data;
         data['color_data'] = data2[cb_obj.origin.name];
-        legend.label.field = cb_obj.origin.label;
+        legend[0].label.field = "0";
+        var l = legend[0];
+        l.label.field = cb_obj.origin.label;
+        legend.push(l);
+        legend[0].visible = false;
+        legend[1].visible = true;
+        legend.pop();
         source.change.emit();
     """)
 
     print(df.columns)
-    print(df.source.unique())
+    print(df.to_csv('test.csv'))
 
-    toggle1 = Button(label="label", name="color_label_code")
-    toggle2 = Button(label="domain", name="color_domain_code")
+    toggle1 = Button(label="label_verbose", name="color_label_code")
+    toggle2 = Button(label="domain_verbose", name="color_domain_code")
     toggle3 = Button(label="pred", name="color_pred_code")
-    toggle4 = Button(label="accurate", name="color_accurate_code")
+    toggle4 = Button(label="accurate_verbose", name="color_accurate_code")
     toggle5 = Button(label="source", name="color_source_code")
 
     toggle1.js_on_click(callback)
