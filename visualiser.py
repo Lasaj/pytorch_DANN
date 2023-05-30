@@ -1,24 +1,24 @@
 import pandas as pd
 import matplotlib.pyplot as plt
-import itertools
+import params
+from PIL import Image
 
 from bokeh.plotting import figure, output_file, show, ColumnDataSource
 from bokeh.models import CustomJS, HoverTool, PanTool, WheelZoomTool, LinearAxis
 from bokeh.models.widgets import Button
 from bokeh.layouts import column, row
 
-
 """
 Plot TSNE as an interactive html plot using Bokeh
 """
 
-def make_df(feats_embedding, labels, domain, ids, data_csv, img_paths, preds, name):
+
+def make_df(feats_embedding, labels, domain, ids, data_csv, preds, name):
     accurate = [1 if x == y else 0 for x, y in zip(labels, preds)]
 
     samples = {'label': labels,
                'domain': domain,
                'file': ids,
-               'img_paths': img_paths,
                'pred': preds,
                'accurate': accurate,
                'x_feats': feats_embedding[:, 0],
@@ -26,12 +26,15 @@ def make_df(feats_embedding, labels, domain, ids, data_csv, img_paths, preds, na
                }
 
     sample_df = pd.DataFrame(samples)
-
     data_csv = data_csv.drop(columns=['label'])
-
     sample_df = pd.merge(sample_df, data_csv, how="inner", on=["file"])
+    img_path = params.covidx_dir
+    if params.visualise_data_set == "test":
+        img_path = f"{img_path}test/"
+    else:
+        img_path = f"{img_path}train/"
+    sample_df['img_paths'] = sample_df.apply(lambda x: f"{img_path}{x['file']}", axis=1)
     sample_df.to_csv(f"interactive_plots/{name}_samples.csv")
-    print(sample_df.columns)
 
     vars = ['label', 'domain', 'pred', 'accurate', 'source']
     var_cats = []
@@ -39,7 +42,6 @@ def make_df(feats_embedding, labels, domain, ids, data_csv, img_paths, preds, na
     for var in vars:
         sample_df[var] = sample_df[var].astype('category')
         var_cats.append(f'{var}_code')
-
 
     sample_df[var_cats] = sample_df[vars].apply(lambda x: x.cat.codes)
 
@@ -54,6 +56,7 @@ def make_df(feats_embedding, labels, domain, ids, data_csv, img_paths, preds, na
     sample_df['domain_verbose'] = sample_df['domain'].map(domain_dict)
     acc_dict = {0: 'Incorrect', 1: 'Correct'}
     sample_df['accurate_verbose'] = sample_df['accurate'].map(acc_dict)
+
 
     return sample_df
 
@@ -80,8 +83,8 @@ def set_colors(vals_for_color, colors=plt.cm.tab20b):
     return colors_hex
 
 
-def create_bokeh(dann_tsne, labels, domains, ids, data_csv, img_paths, preds, title):
-    df = make_df(dann_tsne, labels, domains, ids, data_csv, img_paths, preds, title)
+def create_bokeh(dann_tsne, labels, domains, ids, data_csv, preds, title):
+    df = make_df(dann_tsne, labels, domains, ids, data_csv, preds, title)
 
     output_file(f"interactive_plots/{title}.html")
     figure_size = 500
@@ -136,18 +139,11 @@ def create_bokeh(dann_tsne, labels, domains, ids, data_csv, img_paths, preds, ti
         var data = source.data;
         var data2 = source2.data;
         data['color_data'] = data2[cb_obj.origin.name];
-        legend[0].label.field = "0";
-        var l = legend[0];
-        l.label.field = cb_obj.origin.label;
-        legend.push(l);
+        legend[0].label.field = cb_obj.origin.label;
         legend[0].visible = false;
-        legend[1].visible = true;
-        legend.pop();
+        legend[0].visible = true;
         source.change.emit();
     """)
-
-    print(df.columns)
-    print(df.to_csv('test.csv'))
 
     toggle1 = Button(label="label_verbose", name="color_label_code")
     toggle2 = Button(label="domain_verbose", name="color_domain_code")

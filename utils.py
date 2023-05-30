@@ -308,14 +308,21 @@ def visualize_more(device, encoder, training_mode, save_name, classifier=None):
     tsne = TSNE(perplexity=10.33, n_components=2, n_iter=3000)
     combined_label_list, combined_domain_list, combined_id_list, img_files, embeddings, preds = [], [], [], [], [], []
 
-    for batch, (source_data, target_data) in enumerate(zip(source_test_loader, target_test_loader)):
-    # for batch, (source_data, target_data) in enumerate(zip(source_train_loader, target_train_loader)):
+    if params.visualise_data_set == "test":
+        source_loader = source_test_loader
+        target_loader = target_test_loader
+    else:
+        source_loader = source_train_loader
+        target_loader = target_train_loader
 
-        source_csv = source_test_loader.dataset.data_csv
-        target_csv = target_test_loader.dataset.data_csv
-        combined_csv = pd.concat([source_csv, target_csv])
+    source_csv = source_loader.dataset.data_csv
+    target_csv = target_loader.dataset.data_csv
+    combined_csv = pd.concat([source_csv, target_csv])
 
+    for batch, (source_data, target_data) in enumerate(zip(source_loader, target_loader)):
         if batch >= visualise_batches:
+            break
+        if len(source_data) <= 0 or len(target_data) <= 0:
             break
 
         # Get source_test samples
@@ -367,12 +374,10 @@ def visualize_more(device, encoder, training_mode, save_name, classifier=None):
         batch_label_list.extend(list(target_label_list[0]))
 
         batch_img_list = torch.cat((source_img_list, target_img_list), 0)
-        for i, img in enumerate(batch_img_list):
-            # plt.imshow(img.permute(1, 2, 0))
-            # plt.show()
-            file_name = f'./{training_mode}_imgs/{batch}_{i}.png'
-            save_image(img, file_name)
-            img_files.append(file_name)
+        # for i, img in enumerate(batch_img_list):
+        #     file_name = f'./{training_mode}_imgs/{batch}_{i}.png'
+        #     save_image(img, file_name)
+        #     img_files.append(file_name)
 
         # source_domain_list = torch.zeros(visualise_batches * batch_size).type(torch.LongTensor)
         # target_domain_list = torch.ones(visualise_batches * batch_size).type(torch.LongTensor)
@@ -414,4 +419,4 @@ def visualize_more(device, encoder, training_mode, save_name, classifier=None):
     if params.data_type == 'mnist':
         plot_embedding(embeddings, combined_label_list, combined_domain_list, training_mode, save_name)
     else:
-        create_bokeh(embeddings, combined_label_list, combined_domain_list, combined_id_list, combined_csv, img_files, preds, f"{save_name}_{training_mode}")
+        create_bokeh(embeddings, combined_label_list, combined_domain_list, combined_id_list, combined_csv, preds, f"{save_name}_{training_mode}")

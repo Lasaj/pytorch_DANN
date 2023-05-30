@@ -6,17 +6,19 @@ import matplotlib.pyplot as plt
 from torchvision import transforms, datasets
 from torch.utils.data import DataLoader, Dataset
 from PIL import Image
+from sklearn.model_selection import train_test_split
 
 import params
 
 # from dython.nominal import associations
 
-root_dir = params.covidx_dir
-train_data = f'{root_dir}train.txt'
-test_data = f'{root_dir}test.txt'
+root_dir = params.old_covidx_dir
+covid_data = f'{root_dir}COVID.metadata.xlsx'
+normal_data = f'{root_dir}Normal.metadata.xlsx'
+pneumonia_data = f'{root_dir}Viral Pneumonia.metadata.xlsx'
 
 
-class CovidXDataset(Dataset):
+class OldCovidXDataset(Dataset):
     def __init__(self, data_csv, root_dir, transform=None):
         self.data_csv = data_csv
         self.transform = transform
@@ -26,14 +28,14 @@ class CovidXDataset(Dataset):
         return len(self.data_csv)
 
     def __getitem__(self, idx):
-        img_name = os.path.join(self.root_dir, self.data_csv.iloc[idx, 1])
+        img_name = os.path.join(self.root_dir, self.data_csv.iloc[idx, 5], self.data_csv.iloc[idx, 0])
         image = Image.open(img_name)
-        label = self.data_csv.iloc[idx, 2]
+        label = self.data_csv.iloc[idx, 4]
 
         if self.transform:
             image = self.transform(image)
 
-        return image, label, self.data_csv.iloc[idx, 1]
+        return image, label, self.data_csv.iloc[idx, 0]
 
 
 def make_weights_for_balanced_classes(labels, nclasses):
@@ -51,21 +53,23 @@ def make_weights_for_balanced_classes(labels, nclasses):
 
 
 def prepare_dfs():
-    train_df = pd.read_csv(train_data, sep=" ", header=None)
+    train_df, test_df = combine_dfs()
+    # train_df = pd.read_csv(train_data, sep=" ", header=None)
     headers = ['id', 'file', 'label', 'source']
+    headers = ['file', 'format', 'size', 'source', 'label', 'folder']
     train_df.columns = headers
     train_df.label = train_df.label.astype('category')
-    train_df.replace(['negative', 'positive'], [0, 1], inplace=True)
+    train_df.replace(['normal', 'covid', 'pneumonia'], [0, 1, 2], inplace=True)
 
-    train_source = train_df[train_df['source'] != 'rsna'].reset_index(drop=True)
-    train_target = train_df[train_df['source'] == 'rsna'].reset_index(drop=True)
+    train_source = train_df[train_df['source'] != 'https://github.com/ieee8023/covid-chestxray-dataset'].reset_index(drop=True)
+    train_target = train_df[train_df['source'] == 'https://github.com/ieee8023/covid-chestxray-dataset'].reset_index(drop=True)
     train_source.columns = headers
     train_target.columns = headers
 
-    test_df = pd.read_csv(test_data, sep=" ", header=None)
+    # test_df = pd.read_csv(test_data, sep=" ", header=None)
     test_df.columns = headers
     test_df.label = test_df.label.astype('category')
-    test_df.replace(['negative', 'positive'], [0, 1], inplace=True)
+    test_df.replace(['normal', 'covid', 'pneumonia'], [0, 1, 2], inplace=True)
 
     test_source = test_df[test_df['source'] != 'rsna'].reset_index(drop=True)
     test_target = test_df[test_df['source'] == 'rsna'].reset_index(drop=True)
@@ -79,10 +83,10 @@ def prepare_dls(train_transform, val_transform, train_batch_size, test_batch_siz
     train_source, train_target, test_source, test_target = prepare_dfs()
 
     # Get Datasets and DataLoaders for each split
-    train_source_ds = CovidXDataset(train_source, root_dir + 'train/', transform=train_transform)
-    train_target_ds = CovidXDataset(train_target, root_dir + 'train/', transform=train_transform)
-    test_source_ds = CovidXDataset(test_source, root_dir + 'test/', transform=val_transform)
-    test_target_ds = CovidXDataset(test_target, root_dir + 'test/', transform=val_transform)
+    train_source_ds = OldCovidXDataset(train_source, root_dir, transform=train_transform)
+    train_target_ds = OldCovidXDataset(train_target, root_dir, transform=train_transform)
+    test_source_ds = OldCovidXDataset(test_source, root_dir, transform=val_transform)
+    test_target_ds = OldCovidXDataset(test_target, root_dir, transform=val_transform)
 
     # train_ds = datasets.ImageFolder(train_dir, transform=train_transform)
     # val_ds = datasets.ImageFolder(val_dir, transform=val_transform)
@@ -99,6 +103,7 @@ def prepare_dls(train_transform, val_transform, train_batch_size, test_batch_siz
     #     data[data_set] = DataLoader(data_set, batch_size=train_batch_size, sampler=sampler, drop_last=True)
 
     source_labels = train_source_ds.data_csv.label
+    print(source_labels)
     source_weights = make_weights_for_balanced_classes(source_labels, n_classes)
     source_weights = torch.DoubleTensor(source_weights)
     sampler = torch.utils.data.sampler.WeightedRandomSampler(source_weights, len(source_weights))
@@ -167,7 +172,7 @@ def show_data_dist():
 
     dd = pd.crosstab(df.label, df.source, normalize='columns')
     sns.heatmap(dd, annot=True, fmt='.3f', cmap='Blues')
-    plt.title("Representation of dx in each sex")
+    plt.title("Representation of label in each sex")
     plt.show()
     plt.clf()
 
@@ -175,30 +180,29 @@ def show_data_dist():
     plt.show()
 
 
+def combine_dfs():
+    covid_df = pd.read_excel(covid_data)
+    covid_df['label'] = 'covid'
+    covid_df['folder'] = 'COVID'
+    normal_df = pd.read_excel(normal_data)
+    normal_df['label'] = 'normal'
+    normal_df['folder'] = 'Normal'
+    pneumonia_df = pd.read_excel(pneumonia_data)
+    pneumonia_df['label'] = 'pneumonia'
+    pneumonia_df['folder'] = 'Viral Pneumonia'
+    df = pd.concat([covid_df, normal_df, pneumonia_df])
+
+    print(df['label'].value_counts())
+
+    train_df, test_df = train_test_split(df, test_size=0.2, random_state=42)
+    return train_df, test_df
+
+
 def main():
-
-    source_train_loader, target_train_loader, source_test_loader, target_test_loader = get_data()
-    # print(len(train_source_dl), len(train_target_dl), len(test_source_dl), len(test_target_dl))
-    # for s_img, s_label in test_target_dl:
-    #     print(s_img.shape)
-    #     print(s_label)
-    # print(type(s_img))
-    # print(type(s_label))
-    print(len(source_train_loader), len(target_train_loader))
-    for img in source_test_loader:
-        print(img[0][0].shape)
-        plt.imshow(img[0][0].permute(1, 2, 0))
-        plt.show()
-        exit()
-    # for i, s in enumerate(source_train_loader):
-    #     print(i)
-    # for i, t in enumerate(target_train_loader):
-    #     print(i)
-    # for batch_idx, (source_data, target_data) in enumerate(zip(source_train_loader, target_train_loader)):
-    #     source_image, source_label = source_data
-    #     print(source_label)
-
-    # show_data_dist()
+    a, b, c, d = prepare_dfs()
+    print(a['label'].value_counts())
+    print(a.head())
+    print(a.shape, b.shape, c.shape, d.shape)
 
 
 if __name__ == '__main__':
