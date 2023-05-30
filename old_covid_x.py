@@ -103,7 +103,6 @@ def prepare_dls(train_transform, val_transform, train_batch_size, test_batch_siz
     #     data[data_set] = DataLoader(data_set, batch_size=train_batch_size, sampler=sampler, drop_last=True)
 
     source_labels = train_source_ds.data_csv.label
-    print(source_labels)
     source_weights = make_weights_for_balanced_classes(source_labels, n_classes)
     source_weights = torch.DoubleTensor(source_weights)
     sampler = torch.utils.data.sampler.WeightedRandomSampler(source_weights, len(source_weights))
@@ -191,9 +190,6 @@ def combine_dfs():
     pneumonia_df['label'] = 'pneumonia'
     pneumonia_df['folder'] = 'Viral Pneumonia'
     df = pd.concat([covid_df, normal_df, pneumonia_df])
-
-    print(df['label'].value_counts())
-
     train_df, test_df = train_test_split(df, test_size=0.2, random_state=42)
     return train_df, test_df
 
