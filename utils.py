@@ -5,6 +5,8 @@ import mnistm
 import covid_x
 import itertools
 import os
+
+import old_covid_x
 import params
 import numpy as np
 import pandas as pd
@@ -142,8 +144,10 @@ def visualize(device, encoder, training_mode, save_name):
     if params.data_type == 'mnist':
         source_train_loader, _, source_test_loader = mnist.get_source_dataloaders(encoder_type)
         target_train_loader, _, target_test_loader = mnistm.get_test_dataloaders(encoder_type)
-    else:
+    elif params.data_type == 'covid':
         source_train_loader, target_train_loader, source_test_loader, target_test_loader = covid_x.get_data()
+    else:
+        source_train_loader, target_train_loader, source_test_loader, target_test_loader = old_covid_x.get_data()
 
     # Get source_test samples
     source_label_list = []
@@ -173,7 +177,7 @@ def visualize(device, encoder, training_mode, save_name):
         img, label = test_data
         label = label.numpy()
         img = img.to(device)
-        if params.data_type == 'covidx':
+        if params.data_type != 'mnist':
             img = torch.cat((img, img, img), 1)
         target_label_list.append(label)
         target_img_list.append(img)
@@ -302,8 +306,10 @@ def visualize_more(device, encoder, training_mode, save_name, classifier=None):
     if params.data_type == 'mnist':
         source_train_loader, _, source_test_loader = mnist.get_source_dataloaders(encoder_type)
         target_train_loader, _, target_test_loader = mnistm.get_test_dataloaders(encoder_type)
-    else:
+    elif params.data_type == 'covid_x':
         source_train_loader, target_train_loader, source_test_loader, target_test_loader = covid_x.get_data()
+    else:
+        source_train_loader, target_train_loader, source_test_loader, target_test_loader = old_covid_x.get_data()
 
     tsne = TSNE(perplexity=10.33, n_components=2, n_iter=3000)
     combined_label_list, combined_domain_list, combined_id_list, img_files, embeddings, preds = [], [], [], [], [], []
@@ -329,11 +335,12 @@ def visualize_more(device, encoder, training_mode, save_name, classifier=None):
         source_label_list = []
         source_img_list = []
         source_id_list = []
-        if params.data_type == 'covidx':
+        if params.data_type == 'mnist':
+            source_img, source_label = source_data
+        else:
             source_img, source_label, source_id = source_data
             source_id_list.append(source_id)
-        else:
-            source_img, source_label = source_data
+
         source_label = source_label.numpy()
         source_img = source_img.to(device)
         source_img = torch.cat((source_img, source_img, source_img), 1)
@@ -351,14 +358,15 @@ def visualize_more(device, encoder, training_mode, save_name, classifier=None):
         target_img_list = []
         target_id_list = []
 
-        if params.data_type == 'covidx':
+        if params.data_type == 'mnist':
+            target_img, target_label = target_data
+        else:
             target_img, target_label, target_id = target_data
             target_id_list.append(target_id)
-        else:
-            target_img, target_label = target_data
+
         target_label = target_label.numpy()
         target_img = target_img.to(device)
-        if params.data_type == 'covidx':
+        if params.data_type != 'mnist':
             target_img = torch.cat((target_img, target_img, target_img), 1)
         target_label_list.append(target_label)
         target_img_list.append(target_img)
@@ -386,7 +394,7 @@ def visualize_more(device, encoder, training_mode, save_name, classifier=None):
         target_domain_list = [1] * len(target_img_list)
         batch_domain_list = source_domain_list + target_domain_list
 
-        if params.data_type == 'covidx':
+        if params.data_type != 'mnist':
             batch_id_list = list(source_id_list[0]) + list(target_id_list[0])
             combined_id_list.extend(batch_id_list)
 

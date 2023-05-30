@@ -25,7 +25,7 @@ def tester(device, encoder, classifier, discriminator, source_test_loader, targe
 
         # 1. Source input -> Source Classification
         source_image, source_label = source_data
-        source_image = torch.cat((source_image, source_image, source_image), 1)  # MNIST convert to 3 channel
+        source_image = torch.cat((source_image, source_image, source_image), 1)
         source_image, source_label = source_image.to(device), source_label.to(device)
         source_feature = encoder(source_image)
         # if encoder.__class__.__name__ == 'Inception3':
@@ -37,8 +37,8 @@ def tester(device, encoder, classifier, discriminator, source_test_loader, targe
 
         # 2. Target input -> Target Classification
         target_image, target_label = target_data
-        if params.data_type == 'covidx':
-            target_image = torch.cat((target_image, target_image, target_image), 1)  # MNIST convert to 3 channel
+        if params.data_type != 'mnist':
+            target_image = torch.cat((target_image, target_image, target_image), 1)
         target_image, target_label = target_image.to(device), target_label.to(device)
         target_feature = encoder(target_image)
         # if encoder.__class__.__name__ == 'Inception3':
