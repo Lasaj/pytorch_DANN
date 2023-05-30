@@ -28,7 +28,7 @@ class OldCovidXDataset(Dataset):
         return len(self.data_csv)
 
     def __getitem__(self, idx):
-        img_name = os.path.join(self.root_dir, self.data_csv.iloc[idx, 5], self.data_csv.iloc[idx, 0])
+        img_name = os.path.join(self.root_dir, self.data_csv.iloc[idx, 5], self.data_csv.iloc[idx, 0] + '.png')
         image = Image.open(img_name)
         label = self.data_csv.iloc[idx, 4]
 
@@ -71,8 +71,8 @@ def prepare_dfs():
     test_df.label = test_df.label.astype('category')
     test_df.replace(['normal', 'covid', 'pneumonia'], [0, 1, 2], inplace=True)
 
-    test_source = test_df[test_df['source'] != 'rsna'].reset_index(drop=True)
-    test_target = test_df[test_df['source'] == 'rsna'].reset_index(drop=True)
+    test_source = test_df[test_df['source'] != 'https://github.com/ieee8023/covid-chestxray-dataset'].reset_index(drop=True)
+    test_target = test_df[test_df['source'] == 'https://github.com/ieee8023/covid-chestxray-dataset'].reset_index(drop=True)
     test_source.columns = headers
     test_target.columns = headers
 
@@ -186,6 +186,7 @@ def combine_dfs():
     normal_df = pd.read_excel(normal_data)
     normal_df['label'] = 'normal'
     normal_df['folder'] = 'Normal'
+    normal_df['FILE NAME'] = normal_df['FILE NAME'].str.replace('NORMAL', 'Normal')
     pneumonia_df = pd.read_excel(pneumonia_data)
     pneumonia_df['label'] = 'pneumonia'
     pneumonia_df['folder'] = 'Viral Pneumonia'

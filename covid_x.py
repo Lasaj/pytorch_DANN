@@ -178,6 +178,8 @@ def show_data_dist():
 def main():
 
     source_train_loader, target_train_loader, source_test_loader, target_test_loader = get_data()
+    print(len(source_train_loader), len(target_train_loader), len(source_test_loader), len(target_test_loader))
+    exit()
     # print(len(train_source_dl), len(train_target_dl), len(test_source_dl), len(test_target_dl))
     # for s_img, s_label in test_target_dl:
     #     print(s_img.shape)
