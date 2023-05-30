@@ -79,7 +79,7 @@ def prepare_dfs():
     return train_source, train_target, test_source, test_target
 
 
-def prepare_dls(train_transform, val_transform, train_batch_size, test_batch_size, n_classes=2, shuffle=True):
+def prepare_dls(train_transform, val_transform, train_batch_size, test_batch_size, n_classes=3, shuffle=True):
     train_source, train_target, test_source, test_target = prepare_dfs()
 
     # Get Datasets and DataLoaders for each split
