@@ -13,4 +13,4 @@ old_covidx_dir = './old_covid_x/'
 
 # Change visualisation parameters here #
 visualise_batches = 30  # n * batch_size for TSNE sample (might need to change batch_size to 16)
-visualise_data_set = "train"  # Available: 'train', 'test'
+visualise_data_set = "test"  # Available: 'train', 'test'
