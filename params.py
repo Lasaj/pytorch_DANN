@@ -1,6 +1,6 @@
 # Change experiment parameters here #
-batch_size = 32
-epochs = 100
+batch_size = 16
+epochs = 1
 num_workers = 2
 discriminator_loss = 'crossentropy'  # Available: 'crossentropy', 'kl'
 encoder_type = 'inceptionv3'  # Available: 'inceptionv3', 'extractor'

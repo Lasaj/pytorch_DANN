@@ -24,7 +24,10 @@ def tester(device, encoder, classifier, discriminator, source_test_loader, targe
         alpha = 2. / (1. + np.exp(-10 * p)) - 1
 
         # 1. Source input -> Source Classification
-        source_image, source_label = source_data
+        if params.data_type == 'mnist':
+            source_image, source_label = source_data
+        else:
+            source_image, source_label, _ = source_data
         source_image = torch.cat((source_image, source_image, source_image), 1)
         source_image, source_label = source_image.to(device), source_label.to(device)
         source_feature = encoder(source_image)
@@ -36,8 +39,10 @@ def tester(device, encoder, classifier, discriminator, source_test_loader, targe
 
 
         # 2. Target input -> Target Classification
-        target_image, target_label = target_data
+        if params.data_type == 'mnist':
+            target_image, target_label = target_data
         if params.data_type != 'mnist':
+            target_image, target_label, _ = target_data
             target_image = torch.cat((target_image, target_image, target_image), 1)
         target_image, target_label = target_image.to(device), target_label.to(device)
         target_feature = encoder(target_image)
