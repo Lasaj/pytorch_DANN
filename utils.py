@@ -12,8 +12,8 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from torch.autograd import Function
-# from sklearn.manifold import TSNE
-from openTSNE import TSNE
+from sklearn.manifold import TSNE
+# from openTSNE import TSNE
 from visualiser import create_bokeh
 from torchvision.utils import save_image
 

@@ -7,7 +7,7 @@ import old_covid_x
 import model
 import params
 from datetime import datetime
-from utils import visualize_more
+# from utils import visualize_more
 
 # Training options
 save_name = datetime.now().strftime("%y%m%d_%H%M") + '_IV3'
