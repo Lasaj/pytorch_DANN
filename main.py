@@ -19,8 +19,6 @@ def main():
     print(torch.cuda.is_available())
     print(torch.cuda.device_count())
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    print(device)
-    exit()
 
     if params.data_type == 'mnist':
         source_train_loader, _, source_test_loader = mnist.get_source_dataloaders(encoder_type)
