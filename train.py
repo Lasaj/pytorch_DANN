@@ -19,6 +19,9 @@ import params
 def source_only(device, encoder, classifier, source_train_loader, source_test_loader, target_train_loader,
                 target_test_loader, save_name):
     print("Source-only training")
+    print(len(source_train_loader.dataset))
+    # exit()
+
     classifier_criterion = nn.CrossEntropyLoss().to(device)
     optimizer = optim.SGD(
         list(encoder.parameters()) +
@@ -32,7 +35,8 @@ def source_only(device, encoder, classifier, source_train_loader, source_test_lo
         start_steps = epoch * len(source_train_loader)
         total_steps = params.epochs * len(target_train_loader)
 
-        for batch_idx, (source_data, target_data) in enumerate(zip(source_train_loader, target_train_loader)):
+        for batch_idx, source_data in enumerate(source_train_loader):
+        # for batch_idx, (source_data, target_data) in enumerate(zip(source_train_loader, target_train_loader)):
             if params.data_type == 'mnist':
                 source_image, source_label = source_data
             else:
@@ -54,6 +58,7 @@ def source_only(device, encoder, classifier, source_train_loader, source_test_lo
             # Classification loss
             class_pred = classifier(source_feature)
             class_loss = classifier_criterion(class_pred, source_label)
+            print(class_pred)
 
             class_loss.backward()
             optimizer.step()

@@ -12,6 +12,11 @@ import params
 
 # from dython.nominal import associations
 
+target_datasets = ['https://sirm.org/category/senza-categoria/covid-19/',
+                   'https://github.com/ml-workgroup/covid-19-image-repository/tree/master/png',
+                   'https://eurorad.org', 'https://github.com/armiro/COVID-CXNet',
+                   'https://github.com/ieee8023/covid-chestxray-dataset']
+
 root_dir = params.old_covidx_dir
 covid_data = f'{root_dir}COVID.metadata.xlsx'
 normal_data = f'{root_dir}Normal.metadata.xlsx'
@@ -54,15 +59,13 @@ def make_weights_for_balanced_classes(labels, nclasses):
 
 def prepare_dfs():
     train_df, test_df = combine_dfs()
-    # train_df = pd.read_csv(train_data, sep=" ", header=None)
-    headers = ['id', 'file', 'label', 'source']
     headers = ['file', 'format', 'size', 'source', 'label', 'folder']
     train_df.columns = headers
     train_df.label = train_df.label.astype('category')
     train_df.replace(['normal', 'covid', 'pneumonia'], [0, 1, 2], inplace=True)
 
-    train_source = train_df[train_df['source'] != 'https://github.com/ieee8023/covid-chestxray-dataset'].reset_index(drop=True)
-    train_target = train_df[train_df['source'] == 'https://github.com/ieee8023/covid-chestxray-dataset'].reset_index(drop=True)
+    train_source = train_df[~train_df['source'].isin(target_datasets)].reset_index(drop=True)
+    train_target = train_df[train_df['source'].isin(target_datasets)].reset_index(drop=True)
     train_source.columns = headers
     train_target.columns = headers
 
@@ -71,10 +74,13 @@ def prepare_dfs():
     test_df.label = test_df.label.astype('category')
     test_df.replace(['normal', 'covid', 'pneumonia'], [0, 1, 2], inplace=True)
 
-    test_source = test_df[test_df['source'] != 'https://github.com/ieee8023/covid-chestxray-dataset'].reset_index(drop=True)
-    test_target = test_df[test_df['source'] == 'https://github.com/ieee8023/covid-chestxray-dataset'].reset_index(drop=True)
+    test_source = test_df[~test_df['source'].isin(target_datasets)].reset_index(drop=True)
+    test_target = test_df[test_df['source'].isin(target_datasets)].reset_index(drop=True)
     test_source.columns = headers
     test_target.columns = headers
+
+    train_target = pd.concat([train_target, train_target])
+    test_target = pd.concat([test_target, test_target])
 
     return train_source, train_target, test_source, test_target
 

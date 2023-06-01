@@ -16,8 +16,6 @@ encoder_type = params.encoder_type
 
 
 def main():
-    print(torch.cuda.is_available())
-    print(torch.cuda.device_count())
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     if params.data_type == 'mnist':
@@ -30,7 +28,6 @@ def main():
     else:
         source_train_loader, target_train_loader, source_test_loader, target_test_loader = old_covid_x.get_data()
         out_features = 3
-
 
     print(f'Running on {device}')
     if encoder_type == 'inceptionv3':
