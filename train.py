@@ -11,6 +11,7 @@ from utils import visualize
 from utils import set_model_mode
 import params
 
+
 # Source : 0, Target :1
 # source_test_loader = mnist.mnist_test_loader
 # target_test_loader = mnistm.mnistm_test_loader
@@ -36,7 +37,7 @@ def source_only(device, encoder, classifier, source_train_loader, source_test_lo
         total_steps = params.epochs * len(target_train_loader)
 
         for batch_idx, source_data in enumerate(source_train_loader):
-        # for batch_idx, (source_data, target_data) in enumerate(zip(source_train_loader, target_train_loader)):
+            # for batch_idx, (source_data, target_data) in enumerate(zip(source_train_loader, target_train_loader)):
             if params.data_type == 'mnist':
                 source_image, source_label = source_data
             else:
@@ -58,7 +59,6 @@ def source_only(device, encoder, classifier, source_train_loader, source_test_lo
             # Classification loss
             class_pred = classifier(source_feature)
             class_loss = classifier_criterion(class_pred, source_label)
-            print(class_pred)
 
             class_loss.backward()
             optimizer.step()
@@ -67,6 +67,7 @@ def source_only(device, encoder, classifier, source_train_loader, source_test_lo
                                                                      len(source_train_loader.dataset),
                                                                      100. * batch_idx / len(source_train_loader),
                                                                      class_loss.item()))
+            exit()
 
         test.tester(device, encoder, classifier, None, source_test_loader, target_test_loader,
                     training_mode='source_only')
@@ -130,7 +131,6 @@ def dann(device, encoder, classifier, discriminator, loss_type, source_train_loa
                 combined_feature = combined_feature[0]
                 source_feature = source_feature[0]
 
-
             # 1.Classification loss
             class_pred = classifier(source_feature)
             class_loss = classifier_criterion(class_pred, source_label)
@@ -152,8 +152,8 @@ def dann(device, encoder, classifier, discriminator, loss_type, source_train_loa
             total_loss.backward()
             optimizer.step()
 
-            # if (batch_idx + 1) % 50 == 0:
-            if (batch_idx + 1) % 100 == 0:
+            if (batch_idx + 1) % 50 == 0:
+            # if (batch_idx + 1) % 100 == 0:
                 print('[{}/{} ({:.0f}%)]\tLoss: {:.6f}\tClass Loss: {:.6f}\tDomain Loss: {:.6f}'.format(
                     batch_idx * len(target_image), len(target_train_loader.dataset),
                     100. * batch_idx / len(target_train_loader), total_loss.item(), class_loss.item(),
