@@ -67,7 +67,6 @@ def source_only(device, encoder, classifier, source_train_loader, source_test_lo
                                                                      len(source_train_loader.dataset),
                                                                      100. * batch_idx / len(source_train_loader),
                                                                      class_loss.item()))
-            exit()
 
         test.tester(device, encoder, classifier, None, source_test_loader, target_test_loader,
                     training_mode='source_only')
