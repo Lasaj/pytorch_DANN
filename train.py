@@ -60,6 +60,10 @@ def source_only(device, encoder, classifier, source_train_loader, source_test_lo
             class_pred = classifier(source_feature)
             class_loss = classifier_criterion(class_pred, source_label)
 
+            a = torch.argmax(class_pred, dim=1)
+            print("Labels:", source_label)
+            print("Preds: ", a)
+
             class_loss.backward()
             optimizer.step()
             if (batch_idx + 1) % 50 == 0:
@@ -67,6 +71,9 @@ def source_only(device, encoder, classifier, source_train_loader, source_test_lo
                                                                      len(source_train_loader.dataset),
                                                                      100. * batch_idx / len(source_train_loader),
                                                                      class_loss.item()))
+            test.tester(device, encoder, classifier, None, source_test_loader, target_test_loader,
+                        training_mode='source_only')
+            exit()
 
         test.tester(device, encoder, classifier, None, source_test_loader, target_test_loader,
                     training_mode='source_only')
