@@ -118,7 +118,7 @@ def dann(device, encoder, classifier, discriminator, loss_type, source_train_loa
             alpha = 2. / (1. + np.exp(-10 * p)) - 1
 
             source_image = torch.cat((source_image, source_image, source_image), 1)
-            if encoder.__class__.__name__ == 'Inception3':
+            if params.data_type != 'mnist':
                 target_image = torch.cat((target_image, target_image, target_image), 1)
 
             source_image, source_label = source_image.to(device), source_label.to(device)

@@ -43,8 +43,8 @@ def main():
         classifier = model.Classifier().to(device)
         discriminator = model.Discriminator().to(device)
 
-    train.source_only(device, encoder, classifier, source_train_loader, source_test_loader, target_train_loader,
-                      target_test_loader, save_name)
+    # train.source_only(device, encoder, classifier, source_train_loader, source_test_loader, target_train_loader,
+    #                   target_test_loader, save_name)
     if params.experiment_type == 'dann':
         train.dann(device, encoder, classifier, discriminator, discriminator_loss, source_train_loader,
                    source_test_loader, target_train_loader, target_test_loader, save_name)
