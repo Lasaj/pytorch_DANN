@@ -3,6 +3,7 @@ import torch.nn.functional as F
 from utils import ReverseLayerF
 from torchvision import models
 from torchvision.models.inception import Inception_V3_Weights
+from torchvision.models.densenet import DenseNet121_Weights
 
 
 def get_iv3():
@@ -10,6 +11,13 @@ def get_iv3():
     model.AuxLogits.fc = nn.Linear(768, 768)
     # model.fc = nn.Linear(2048, (3 * 28 * 28))
     model.fc = nn.Identity()
+    return model
+
+
+def get_densenet():
+    model = models.densenet121(weights=DenseNet121_Weights.IMAGENET1K_V1, progress=True)
+    model.classifier = nn.Identity()
+    # model.fc = nn.Identity()
     return model
 
 
@@ -61,3 +69,13 @@ class Discriminator(nn.Module):
         reversed_input = ReverseLayerF.apply(input_feature, alpha)
         x = self.discriminator(reversed_input)
         return F.softmax(x)
+
+
+def main():
+    model = get_densenet()
+    # 1024
+    print(model)
+
+
+if __name__ == '__main__':
+    main()

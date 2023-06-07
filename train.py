@@ -19,8 +19,8 @@ import params
 
 def source_only(device, encoder, classifier, source_train_loader, source_test_loader, target_train_loader,
                 target_test_loader, save_name):
-    print("Source-only training")
-    print(len(source_train_loader.dataset))
+    print(f"Source-only training on {encoder.__class__.__name__}")
+    print(f"Found {len(source_train_loader.dataset)} samples")
     # exit()
 
     classifier_criterion = nn.CrossEntropyLoss().to(device)
@@ -61,8 +61,8 @@ def source_only(device, encoder, classifier, source_train_loader, source_test_lo
             class_loss = classifier_criterion(class_pred, source_label)
 
             a = torch.argmax(class_pred, dim=1)
-            print("Labels:", source_label)
-            print("Preds: ", a)
+            # print("Labels:", source_label)
+            # print("Preds: ", a)
 
             class_loss.backward()
             optimizer.step()

@@ -134,13 +134,16 @@ def prepare_dls(train_transform, val_transform, train_batch_size, test_batch_siz
     return train_source_dl, train_target_dl, test_source_dl, test_target_dl
 
 
-def get_data(transform=True, shuffle=True):
+def get_data(size=299, transform=True, shuffle=True):
     # train_df, val_df, test_df = prepare_dfs(data_csv)
     train_transform, val_transform = None, None
 
+    if params.encoder_type == 'densenet':
+        size = 224
+
     if transform:
-        train_transform = transforms.Compose([transforms.Resize((299, 299)),
-                                              # transforms.CenterCrop((299, 299)),
+        train_transform = transforms.Compose([transforms.Resize((size, size)),
+                                              # transforms.CenterCrop((size, size)),
                                               # transforms.RandomHorizontalFlip(),
                                               # transforms.RandomVerticalFlip(),
                                               transforms.RandomRotation(20),
@@ -149,7 +152,7 @@ def get_data(transform=True, shuffle=True):
                                               transforms.ToTensor(),
                                               # transforms.Normalize(img_mean, img_std)
                                               ])
-        val_transform = transforms.Compose([transforms.Resize((299, 299)),
+        val_transform = transforms.Compose([transforms.Resize((size, size)),
                                             transforms.Grayscale(),
                                             # transforms.CenterCrop((299, 299)),
                                             # transforms.RandomHorizontalFlip(),

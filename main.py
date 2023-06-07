@@ -34,6 +34,10 @@ def main():
         encoder = model.get_iv3().to(device)
         classifier = model.Classifier(in_features=2048, out_features=out_features).to(device)
         discriminator = model.Discriminator(in_features=2048).to(device)
+    elif encoder_type == 'densenet':
+        encoder = model.get_densenet().to(device)
+        classifier = model.Classifier(in_features=1024, out_features=out_features).to(device)
+        discriminator = model.Discriminator(in_features=1024).to(device)
     else:
         encoder = model.Extractor().to(device)
         classifier = model.Classifier().to(device)
