@@ -37,12 +37,10 @@ def tester(device, encoder, classifier, discriminator, source_test_loader, targe
         source_output = classifier(source_feature)
         # count number of each prediction
         a = torch.argmax(source_output, dim=1)
-        print(a)
-        # count each value in a
         unique, counts = torch.unique(a, return_counts=True)
         print(unique, counts)
         for i, v in enumerate(unique):
-            source_preds[v] += counts[i].numpy()
+            source_preds[v] += counts[i].cpu().numpy()
         source_pred = source_output.data.max(1, keepdim=True)[1]
         source_correct += source_pred.eq(source_label.data.view_as(source_pred)).cpu().sum()
 
