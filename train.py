@@ -66,7 +66,7 @@ def source_only(device, encoder, classifier, source_train_loader, source_test_lo
 
             class_loss.backward()
             optimizer.step()
-            if (batch_idx + 1) % 50 == 0:
+            if (batch_idx + 1) % 10 == 0:
                 print('[{}/{} ({:.0f}%)]\tClass Loss: {:.6f}'.format(batch_idx * len(source_image),
                                                                      len(source_train_loader.dataset),
                                                                      100. * batch_idx / len(source_train_loader),
@@ -155,7 +155,7 @@ def dann(device, encoder, classifier, discriminator, loss_type, source_train_loa
             total_loss.backward()
             optimizer.step()
 
-            if (batch_idx + 1) % 50 == 0:
+            if (batch_idx + 1) % 10 == 0:
             # if (batch_idx + 1) % 100 == 0:
                 print('[{}/{} ({:.0f}%)]\tLoss: {:.6f}\tClass Loss: {:.6f}\tDomain Loss: {:.6f}'.format(
                     batch_idx * len(target_image), len(target_train_loader.dataset),
