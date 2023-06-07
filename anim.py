@@ -3,7 +3,7 @@ import imageio.v2 as imageio
 from utils import plot_embedding
 import torch
 import mnist
-import model
+import models
 import mnistm
 from glob import glob
 import os
@@ -81,7 +81,7 @@ def get_data(device, encoder_type, num_batches=1):
 
 
 def perform_tsne(device, encoder, features, imgs, base_fit):
-    # encoder = model.Extractor().to(device)
+    # encoder = models.Extractor().to(device)
     encoder = encoder.to(device)
     tsne = TSNE(perplexity=21, n_components=2, n_iter=3000)
 
@@ -132,7 +132,7 @@ def make_plots(all_embeddings, axis_limits, labels, domains, save_name, base_fit
 
 
 # def perform_umap(device, features, imgs, labels, domains, save_name):
-#     encoder = model.Extractor().to(device)
+#     encoder = models.Extractor().to(device)
 #     trans = umap.UMAP(n_neighbors=30, min_dist=0.0, n_components=2, random_state=42)
 #
 #     last_features = features[-1]
@@ -173,9 +173,9 @@ def main():
     # base_fit = 'last'  # 'last' or 'first'
     # base_fit = 'first'  # 'last' or 'first'
     if encoder_type == "inceptionv3":
-        encoder = model.get_iv3()
+        encoder = models.get_iv3()
     else:
-        encoder = model.Extractor()
+        encoder = models.Extractor()
 
     for base_fit in ['last', 'first']:
         device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')

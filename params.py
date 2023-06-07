@@ -3,8 +3,8 @@ batch_size = 64
 epochs = 100
 num_workers = 2
 discriminator_loss = 'crossentropy'  # Available: 'crossentropy', 'kl'
-encoder_type = 'densenet'  # Available: 'inceptionv3', 'extractor', 'densenet'
-experiment_type = 'source_only'  # Available: 'dann', 'source_only'
+encoder_type = 'resnet'  # Available: 'inceptionv3', 'extractor', 'densenet', 'resnet'
+experiment_type = 'dann'  # Available: 'dann', 'source_only'
 data_type = 'old_covidx'  # Available: 'mnist', 'covidx', 'old_covidx'
 
 # Change data parameters here #

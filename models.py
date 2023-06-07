@@ -1,9 +1,12 @@
+import torch
 import torch.nn as nn
 import torch.nn.functional as F
+# import torchxrayvision as xrv
 from utils import ReverseLayerF
 from torchvision import models
 from torchvision.models.inception import Inception_V3_Weights
 from torchvision.models.densenet import DenseNet121_Weights
+from torchvision.models.resnet import ResNet50_Weights
 
 
 def get_iv3():
@@ -16,8 +19,31 @@ def get_iv3():
 
 def get_densenet():
     model = models.densenet121(weights=DenseNet121_Weights.IMAGENET1K_V1, progress=True)
+    # model.load_state_dict(torch.load('./trained_models/nih-pc-chex-mimic_ch-google-openi-kaggle-densenet121-d121-tw'
+    #                                  '-lr001-rot45-tr15-sc15-seed0-best.pt'))
+    # model = xrv.models.DenseNet(weights='all')
     model.classifier = nn.Identity()
     # model.fc = nn.Identity()
+    return model
+
+
+def get_resnet():
+    model = models.resnet50(weights=ResNet50_Weights.IMAGENET1K_V1, progress=True)
+
+    # reshape model to load dict
+    n_features = model.fc.in_features
+    model.fc = nn.Linear(n_features, 1)
+
+    # fix state_dict keys to match model and load
+    if torch.cuda.is_available():
+        state_dict = torch.load('./trained_models/chest-x-ray-resnet50-model.pth')
+    else:
+        state_dict = torch.load('./trained_models/chest-x-ray-resnet50-model.pth', map_location=torch.device('cpu'))
+    for key in list(state_dict.keys()):
+        state_dict[key.replace('network.', '')] = state_dict.pop(key)
+    model.load_state_dict(state_dict)
+
+    model.fc = nn.Identity()
     return model
 
 
@@ -72,8 +98,7 @@ class Discriminator(nn.Module):
 
 
 def main():
-    model = get_densenet()
-    # 1024
+    model = get_resnet()
     print(model)
 
 

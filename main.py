@@ -4,7 +4,7 @@ import mnist
 import mnistm
 import covid_x
 import old_covid_x
-import model
+import models
 import params
 from datetime import datetime
 # from utils import visualize_more
@@ -29,20 +29,23 @@ def main():
         source_train_loader, target_train_loader, source_test_loader, target_test_loader = old_covid_x.get_data()
         out_features = 3
 
-    print("Train on full data")
-    print(f'Running on {device}')
+    print(f'Training {encoder_type} on {device}')
     if encoder_type == 'inceptionv3':
-        encoder = model.get_iv3().to(device)
-        classifier = model.Classifier(in_features=2048, out_features=out_features).to(device)
-        discriminator = model.Discriminator(in_features=2048).to(device)
+        encoder = models.get_iv3().to(device)
+        classifier = models.Classifier(in_features=2048, out_features=out_features).to(device)
+        discriminator = models.Discriminator(in_features=2048).to(device)
     elif encoder_type == 'densenet':
-        encoder = model.get_densenet().to(device)
-        classifier = model.Classifier(in_features=1024, out_features=out_features).to(device)
-        discriminator = model.Discriminator(in_features=1024).to(device)
+        encoder = models.get_densenet().to(device)
+        classifier = models.Classifier(in_features=1024, out_features=out_features).to(device)
+        discriminator = models.Discriminator(in_features=1024).to(device)
+    elif encoder_type == 'resnet':
+        encoder = models.get_resnet().to(device)
+        classifier = models.Classifier(in_features=2048, out_features=out_features).to(device)
+        discriminator = models.Discriminator(in_features=2048).to(device)
     else:
-        encoder = model.Extractor().to(device)
-        classifier = model.Classifier().to(device)
-        discriminator = model.Discriminator().to(device)
+        encoder = models.Extractor().to(device)
+        classifier = models.Classifier().to(device)
+        discriminator = models.Discriminator().to(device)
 
     train.source_only(device, encoder, classifier, source_train_loader, source_test_loader, target_train_loader,
                       target_test_loader, save_name)
