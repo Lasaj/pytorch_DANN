@@ -65,6 +65,7 @@ def prepare_dfs():
     train_df.replace(['normal', 'covid', 'pneumonia'], [0, 1, 2], inplace=True)
 
     train_source = train_df[~train_df['source'].isin(target_datasets)].reset_index(drop=True)
+    train_source = train_df  # TODO delete
     train_target = train_df[train_df['source'].isin(target_datasets)].reset_index(drop=True)
     train_source.columns = headers
     train_target.columns = headers
@@ -75,6 +76,7 @@ def prepare_dfs():
     test_df.replace(['normal', 'covid', 'pneumonia'], [0, 1, 2], inplace=True)
 
     test_source = test_df[~test_df['source'].isin(target_datasets)].reset_index(drop=True)
+    test_source = test_df  # TODO delete
     test_target = test_df[test_df['source'].isin(target_datasets)].reset_index(drop=True)
     test_source.columns = headers
     test_target.columns = headers

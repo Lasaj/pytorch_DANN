@@ -29,6 +29,7 @@ def main():
         source_train_loader, target_train_loader, source_test_loader, target_test_loader = old_covid_x.get_data()
         out_features = 3
 
+    print("Train on full data")
     print(f'Running on {device}')
     if encoder_type == 'inceptionv3':
         encoder = model.get_iv3().to(device)
