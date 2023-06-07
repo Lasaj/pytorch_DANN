@@ -72,6 +72,7 @@ def source_only(device, encoder, classifier, source_train_loader, source_test_lo
                                                                      100. * batch_idx / len(source_train_loader),
                                                                      class_loss.item()))
 
+        print(f'Epoch: {epoch}, Loss: {class_loss.item()}')
         test.tester(device, encoder, classifier, None, source_test_loader, target_test_loader,
                     training_mode='source_only')
 
@@ -163,6 +164,7 @@ def dann(device, encoder, classifier, discriminator, loss_type, source_train_loa
                     domain_loss.item()))
                 # visualize(device, encoder, 'dann', save_name + '_' + ep_str)
 
+        print(f'Epoch: {epoch}, Loss: {total_loss.item()}, Class Loss: {class_loss.item()}, Domain Loss: {domain_loss.item()}')
         test.tester(device, encoder, classifier, discriminator, source_test_loader, target_test_loader,
                     training_mode='dann')
 
