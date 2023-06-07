@@ -1,5 +1,5 @@
 # Change experiment parameters here #
-batch_size = 32
+batch_size = 64
 epochs = 100
 num_workers = 2
 discriminator_loss = 'crossentropy'  # Available: 'crossentropy', 'kl'
