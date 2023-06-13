@@ -192,15 +192,21 @@ def combine_dfs():
     covid_df = pd.read_excel(covid_data)
     covid_df['label'] = 'covid'
     covid_df['folder'] = 'COVID'
+    covid_train, covid_test = train_test_split(covid_df, test_size=0.2, random_state=42)
+
     normal_df = pd.read_excel(normal_data)
     normal_df['label'] = 'normal'
     normal_df['folder'] = 'Normal'
     normal_df['FILE NAME'] = normal_df['FILE NAME'].str.replace('NORMAL', 'Normal')
+    normal_train, normal_test = train_test_split(normal_df, test_size=0.2, random_state=42)
+
     pneumonia_df = pd.read_excel(pneumonia_data)
     pneumonia_df['label'] = 'pneumonia'
     pneumonia_df['folder'] = 'Viral Pneumonia'
-    df = pd.concat([covid_df, normal_df, pneumonia_df])
-    train_df, test_df = train_test_split(df, test_size=0.2, random_state=42)
+    pneumonia_train, pneumonia_test = train_test_split(pneumonia_df, test_size=0.2, random_state=42)
+
+    train_df = pd.concat([covid_train, normal_train, pneumonia_train])
+    test_df = pd.concat([covid_test, normal_test, pneumonia_test])
     return train_df, test_df
 
 

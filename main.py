@@ -10,7 +10,7 @@ from datetime import datetime
 # from utils import visualize_more
 
 # Training options
-save_name = datetime.now().strftime("%y%m%d_%H%M") + '_IV3'
+save_name = datetime.now().strftime("%y%m%d_%H%M")
 discriminator_loss = params.discriminator_loss
 encoder_type = params.encoder_type
 
@@ -48,10 +48,10 @@ def main():
         discriminator = models.Discriminator().to(device)
 
     train.source_only(device, encoder, classifier, source_train_loader, source_test_loader, target_train_loader,
-                      target_test_loader, save_name)
+                      target_test_loader, save_name + '_' + encoder_type)
     if params.experiment_type == 'dann':
         train.dann(device, encoder, classifier, discriminator, discriminator_loss, source_train_loader,
-                   source_test_loader, target_train_loader, target_test_loader, save_name)
+                   source_test_loader, target_train_loader, target_test_loader, save_name + '_' + encoder_type)
 
     # encoder.load_state_dict(torch.load('./trained_models/covidx_both/encoder_source_230512_0801_IV3.pt', map_location=device))
     # classifier.load_state_dict(torch.load('./trained_models/covidx_both/classifier_source_230512_0801_IV3.pt', map_location=device))
