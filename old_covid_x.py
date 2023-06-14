@@ -213,7 +213,10 @@ def combine_dfs():
 def main():
     a, b, c, d = prepare_dfs()
     print(a['label'].value_counts())
-    print(a.head())
+    print(b['label'].value_counts())
+    print(c['label'].value_counts())
+    print(d['label'].value_counts())
+    # print(a.head())
     print(a.shape, b.shape, c.shape, d.shape)
 
 

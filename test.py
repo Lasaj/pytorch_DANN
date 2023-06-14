@@ -20,6 +20,8 @@ def tester(device, encoder, classifier, discriminator, source_test_loader, targe
     source_correct = 0
     target_correct = 0
     source_preds = [0] * 3
+    correct_preds = [0] * 3
+    count_all = [0] * 3
 
     for batch_idx, (source_data, target_data) in enumerate(zip(source_test_loader, target_test_loader)):
         p = float(batch_idx) / len(source_test_loader)
@@ -38,8 +40,26 @@ def tester(device, encoder, classifier, discriminator, source_test_loader, targe
         source_output = classifier(source_feature)
         # count number of each prediction
         a = torch.argmax(source_output, dim=1)
-        unique, counts = torch.unique(a, return_counts=True)
-        # print(unique, counts)
+        a_pred = a.cpu().numpy()
+        b_label = source_label.cpu().numpy()
+        print(a_pred, b_label)
+        for i, v in enumerate(a_pred):
+            if b_label[i] == v:
+                correct_preds[v] += 1
+
+        unique, counts = torch.unique(source_label, return_counts=True)
+        for i, v in enumerate(unique.cpu().numpy()):
+            count_all[v] += counts.cpu().numpy()[i]
+
+        print(unique, counts)
+        print(correct_preds, count_all)
+        a = [0] * 3
+        for i, v in enumerate(correct_preds):
+            if count_all[i] != 0:
+                a[i] = v / count_all[i]
+
+        print(f"Accuracy: Normal: {a[0]}, Pneumonia: {a[1]}, COVID: {a[2]}")
+
         for i, v in enumerate(unique):
             source_preds[v] += counts[i].cpu().numpy()
         source_pred = source_output.data.max(1, keepdim=True)[1]
