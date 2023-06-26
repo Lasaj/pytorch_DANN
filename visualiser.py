@@ -50,7 +50,14 @@ def make_df(feats_embedding, labels, domain, ids, data_csv, preds, name):
         sample_df[my_col_string] = set_colors(sample_df[col].values, plt.cm.Set1)
     sample_df['color_data'] = set_colors(sample_df.label_code)
 
-    label_dict = {0: 'No Covid', 1: 'Covid'}
+    # label_dict = {0: 'No Covid', 1: 'Covid'}
+    # sample_df['label_verbose'] = sample_df['label'].map(label_dict)
+    # domain_dict = {0: 'Source', 1: 'Target'}
+    # sample_df['domain_verbose'] = sample_df['domain'].map(domain_dict)
+    # acc_dict = {0: 'Incorrect', 1: 'Correct'}
+    # sample_df['accurate_verbose'] = sample_df['accurate'].map(acc_dict)
+
+    label_dict = {0: 'No Covid', 1: 'Covid', 2: 'Pneumonia'}
     sample_df['label_verbose'] = sample_df['label'].map(label_dict)
     domain_dict = {0: 'Source', 1: 'Target'}
     sample_df['domain_verbose'] = sample_df['domain'].map(domain_dict)

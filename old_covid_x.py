@@ -3,6 +3,7 @@ import os
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
+import numpy as np
 from torchvision import transforms, datasets
 from torch.utils.data import DataLoader, Dataset
 from PIL import Image
@@ -210,14 +211,41 @@ def combine_dfs():
     return train_df, test_df
 
 
+def show_correlations():
+    train_df, test_df = combine_dfs()
+    df = pd.concat([train_df, test_df])
+    df = df[['label', 'URL']]
+    df['URL'] = pd.factorize(df['URL'])[0]
+    # print(df.iloc[0])
+    # print(df.columns)
+    # print(df['label'].corr(df['URL']))
+    # plt.matshow(df.corr())
+    # print(df.corr())
+    # plt.show()
+    counts = pd.crosstab(df['label'], df['URL'])
+    fig, ax = plt.subplots()
+    ax.matshow(counts)
+    for (i, j), z in np.ndenumerate(counts):
+        ax.text(j, i, '{:0.1f}'.format(z), ha='center', va='center')
+    ax.set_xticks(np.arange(len(counts.columns)))
+    ax.set_yticks(np.arange(len(counts.index)), counts.index)
+    plt.tight_layout()
+    plt.show()
+
+
 def main():
     a, b, c, d = prepare_dfs()
     print(a['label'].value_counts())
     print(b['label'].value_counts())
     print(c['label'].value_counts())
     print(d['label'].value_counts())
-    # print(a.head())
+    print(a.head())
     print(a.shape, b.shape, c.shape, d.shape)
+
+    x, y = combine_dfs()
+    print(x.shape, y.shape)
+
+
 
 
 if __name__ == '__main__':

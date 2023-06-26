@@ -7,7 +7,7 @@ import old_covid_x
 import models
 import params
 from datetime import datetime
-# from utils import visualize_more
+from utils import visualize_more
 
 # Training options
 save_name = datetime.now().strftime("%y%m%d_%H%M")
@@ -35,7 +35,7 @@ def main():
         classifier = models.Classifier(in_features=2048, out_features=out_features).to(device)
         discriminator = models.Discriminator(in_features=2048).to(device)
     elif encoder_type == 'densenet':
-        encoder = models.get_densenet().to(device)
+        encoder = models.get_densenet(params.use_xrv_weights).to(device)
         classifier = models.Classifier(in_features=1024, out_features=out_features).to(device)
         discriminator = models.Discriminator(in_features=1024).to(device)
     elif encoder_type == 'resnet':
@@ -53,12 +53,12 @@ def main():
         train.dann(device, encoder, classifier, discriminator, discriminator_loss, source_train_loader,
                    source_test_loader, target_train_loader, target_test_loader, save_name + '_' + encoder_type)
 
-    # encoder.load_state_dict(torch.load('./trained_models/covidx_both/encoder_source_230512_0801_IV3.pt', map_location=device))
-    # classifier.load_state_dict(torch.load('./trained_models/covidx_both/classifier_source_230512_0801_IV3.pt', map_location=device))
+    # encoder.load_state_dict(torch.load('./trained_models/old_covidx/encoder_source_230614_1755_densenet.pt', map_location=device))
+    # classifier.load_state_dict(torch.load('./trained_models/old_covidx/classifier_source_230614_1755_densenet.pt', map_location=device))
     # visualize_more(device, encoder, 'source', save_name, classifier)
 
-    # encoder.load_state_dict(torch.load('./trained_models/covidx_both/encoder_dann_230512_0801_IV3.pt', map_location=device))
-    # classifier.load_state_dict(torch.load('./trained_models/covidx_both/classifier_dann_230512_0801_IV3.pt', map_location=device))
+    # encoder.load_state_dict(torch.load('./trained_models/old_covidx/encoder_dann_230614_1755_densenet.pt', map_location=device))
+    # classifier.load_state_dict(torch.load('./trained_models/old_covidx/classifier_dann_230614_1755_densenet.pt', map_location=device))
     # visualize_more(device, encoder, 'dann', save_name, classifier)
 
 

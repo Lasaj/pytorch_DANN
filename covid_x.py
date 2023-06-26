@@ -176,6 +176,8 @@ def show_data_dist():
 
 
 def main():
+    show_data_dist()
+    exit()
 
     source_train_loader, target_train_loader, source_test_loader, target_test_loader = get_data()
     print(len(source_train_loader), len(target_train_loader), len(source_test_loader), len(target_test_loader))

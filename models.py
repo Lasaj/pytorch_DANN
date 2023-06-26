@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-# import torchxrayvision as xrv
+import torchxrayvision as xrv
 from utils import ReverseLayerF
 from torchvision import models
 from torchvision.models.inception import Inception_V3_Weights
@@ -17,13 +17,13 @@ def get_iv3():
     return model
 
 
-def get_densenet():
+def get_densenet(use_xrv_weights=False):
     model = models.densenet121(weights=DenseNet121_Weights.IMAGENET1K_V1, progress=True)
-    # model.load_state_dict(torch.load('./trained_models/nih-pc-chex-mimic_ch-google-openi-kaggle-densenet121-d121-tw'
-    #                                  '-lr001-rot45-tr15-sc15-seed0-best.pt'))
-    # model = xrv.models.DenseNet(weights='all')
     model.classifier = nn.Identity()
-    # model.fc = nn.Identity()
+    if use_xrv_weights:
+        model.features.conv0 = torch.nn.Conv2d(1, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False)
+        model.load_state_dict(torch.load('./trained_models/torchxrayvision/densenet121-res224-all.pt'))
+
     return model
 
 
@@ -44,6 +44,12 @@ def get_resnet():
     model.load_state_dict(state_dict)
 
     model.fc = nn.Identity()
+    return model
+
+
+def get_xrv_densenet():
+    model = xrv.models.DenseNet(weights='all')
+    model.classifier = nn.Identity()
     return model
 
 

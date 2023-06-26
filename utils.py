@@ -12,8 +12,8 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from torch.autograd import Function
-from sklearn.manifold import TSNE
-# from openTSNE import TSNE
+# from sklearn.manifold import TSNE
+from openTSNE import TSNE
 from visualiser import create_bokeh
 from torchvision.utils import save_image
 
@@ -351,7 +351,8 @@ def visualize_more(device, encoder, training_mode, save_name, classifier=None):
         if encoder.__class__.__name__ == 'Inception3':
             source_img_list = source_img_list.view(-1, 3, 299, 299)
         else:
-            source_img_list = source_img_list.view(-1, 3, 28, 28)
+            source_img_list = source_img_list.view(-1, 3, 224, 224)
+            # source_img_list = source_img_list.view(-1, 3, 28, 28)
 
         # Get target_test samples
         target_label_list = []
@@ -375,7 +376,8 @@ def visualize_more(device, encoder, training_mode, save_name, classifier=None):
         if encoder.__class__.__name__ == 'Inception3':
             target_img_list = target_img_list.view(-1, 3, 299, 299)
         else:
-            target_img_list = target_img_list.view(-1, 3, 28, 28)
+            target_img_list = target_img_list.view(-1, 3, 224, 224)
+            # target_img_list = target_img_list.view(-1, 3, 28, 28)
 
         # Stack source_list + target_list
         batch_label_list = list(source_label_list[0])

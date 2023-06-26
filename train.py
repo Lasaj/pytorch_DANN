@@ -45,7 +45,8 @@ def source_only(device, encoder, classifier, source_train_loader, source_test_lo
 
             p = float(batch_idx + start_steps) / total_steps
 
-            source_image = torch.cat((source_image, source_image, source_image), 1)  # convert to 3 channel
+            if not (params.encoder_type == 'densenet' and params.use_xrv_weights):
+                source_image = torch.cat((source_image, source_image, source_image), 1)  # convert to 3 channel
             source_image, source_label = source_image.to(device), source_label.to(device)
 
             optimizer = utils.optimizer_scheduler(optimizer=optimizer, p=p)
@@ -117,9 +118,10 @@ def dann(device, encoder, classifier, discriminator, loss_type, source_train_loa
             p = float(batch_idx + start_steps) / total_steps
             alpha = 2. / (1. + np.exp(-10 * p)) - 1
 
-            source_image = torch.cat((source_image, source_image, source_image), 1)
-            if params.data_type != 'mnist':
-                target_image = torch.cat((target_image, target_image, target_image), 1)
+            if not (params.encoder_type == 'densenet' and params.use_xrv_weights):
+                source_image = torch.cat((source_image, source_image, source_image), 1)
+                if params.data_type != 'mnist':
+                    target_image = torch.cat((target_image, target_image, target_image), 1)
 
             source_image, source_label = source_image.to(device), source_label.to(device)
             target_image, target_label = target_image.to(device), target_label.to(device)
@@ -157,14 +159,15 @@ def dann(device, encoder, classifier, discriminator, loss_type, source_train_loa
             optimizer.step()
 
             if (batch_idx + 1) % 10 == 0:
-            # if (batch_idx + 1) % 100 == 0:
+                # if (batch_idx + 1) % 100 == 0:
                 print('[{}/{} ({:.0f}%)]\tLoss: {:.6f}\tClass Loss: {:.6f}\tDomain Loss: {:.6f}'.format(
                     batch_idx * len(target_image), len(target_train_loader.dataset),
                     100. * batch_idx / len(target_train_loader), total_loss.item(), class_loss.item(),
                     domain_loss.item()))
                 # visualize(device, encoder, 'dann', save_name + '_' + ep_str)
 
-        print(f'Epoch: {epoch}, Loss: {total_loss.item()}, Class Loss: {class_loss.item()}, Domain Loss: {domain_loss.item()}')
+        print(
+            f'Epoch: {epoch}, Loss: {total_loss.item()}, Class Loss: {class_loss.item()}, Domain Loss: {domain_loss.item()}')
         test.tester(device, encoder, classifier, discriminator, source_test_loader, target_test_loader,
                     training_mode='dann')
 
