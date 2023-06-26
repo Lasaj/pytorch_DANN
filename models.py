@@ -1,7 +1,6 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import torchxrayvision as xrv
 from utils import ReverseLayerF
 from torchvision import models
 from torchvision.models.inception import Inception_V3_Weights
@@ -44,12 +43,6 @@ def get_resnet():
     model.load_state_dict(state_dict)
 
     model.fc = nn.Identity()
-    return model
-
-
-def get_xrv_densenet():
-    model = xrv.models.DenseNet(weights='all')
-    model.classifier = nn.Identity()
     return model
 
 
