@@ -32,7 +32,9 @@ def tester(device, encoder, classifier, discriminator, source_test_loader, targe
             source_image, source_label = source_data
         else:
             source_image, source_label, _ = source_data
-        source_image = torch.cat((source_image, source_image, source_image), 1)
+
+        if not (params.encoder_type == 'densenet' and params.use_xrv_weights):
+            source_image = torch.cat((source_image, source_image, source_image), 1)
         source_image, source_label = source_image.to(device), source_label.to(device)
         source_feature = encoder(source_image)
         # if encoder.__class__.__name__ == 'Inception3':
