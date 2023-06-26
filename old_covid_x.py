@@ -124,8 +124,8 @@ def prepare_dls(train_transform, val_transform, train_batch_size, test_batch_siz
     if not shuffle:
         train_source_dl = DataLoader(train_source_ds, batch_size=train_batch_size, shuffle=shuffle, drop_last=False)
     train_target_dl = DataLoader(train_target_ds, batch_size=train_batch_size, shuffle=shuffle, drop_last=False)
-    test_source_dl = DataLoader(test_source_ds, batch_size=test_batch_size, shuffle=shuffle, drop_last=False)
-    test_target_dl = DataLoader(test_target_ds, batch_size=test_batch_size, shuffle=shuffle, drop_last=False)
+    test_source_dl = DataLoader(test_source_ds, batch_size=test_batch_size, shuffle=False, drop_last=False)
+    test_target_dl = DataLoader(test_target_ds, batch_size=test_batch_size, shuffle=False, drop_last=False)
 
     # train_source_dl = data[train_source_ds]
     # train_target_dl = data[train_target_ds]
