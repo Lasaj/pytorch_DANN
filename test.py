@@ -72,7 +72,8 @@ def tester(device, encoder, classifier, discriminator, source_test_loader, targe
             target_image, target_label = target_data
         if params.data_type != 'mnist':
             target_image, target_label, _ = target_data
-            target_image = torch.cat((target_image, target_image, target_image), 1)
+            if not (params.encoder_type == 'densenet' and params.use_xrv_weights):
+                target_image = torch.cat((target_image, target_image, target_image), 1)
         target_image, target_label = target_image.to(device), target_label.to(device)
         target_feature = encoder(target_image)
         # if encoder.__class__.__name__ == 'Inception3':
