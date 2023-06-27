@@ -242,8 +242,8 @@ def main():
     print(a.head())
     print(a.shape, b.shape, c.shape, d.shape)
 
-    x, y = combine_dfs()
-    print(x.shape, y.shape)
+    # x, y = combine_dfs()
+    # print(x.shape, y.shape)
 
 
 
