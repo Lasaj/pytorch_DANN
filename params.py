@@ -6,7 +6,7 @@ discriminator_loss = 'crossentropy'  # Available: 'crossentropy', 'kl'
 encoder_type = 'densenet'  # Available: 'inceptionv3', 'extractor', 'densenet', 'resnet'
 use_xrv_weights = True  # Weights trained by https://github.com/mlmed/torchxrayvision
 experiment_type = 'dann'  # Available: 'dann', 'source_only'
-data_type = 'old_covidx'  # Available: 'mnist', 'covidx', 'old_covidx'
+data_type = 'covidx'  # Available: 'mnist', 'covidx', 'old_covidx'
 
 # Change data parameters here #
 covidx_dir = './covid_x/'
