@@ -6,6 +6,9 @@ import matplotlib.pyplot as plt
 from torchvision import transforms, datasets
 from torch.utils.data import DataLoader, Dataset
 from PIL import Image
+
+import params
+
 # from dython.nominal import associations
 
 root_dir = '../covid_x/'
@@ -145,7 +148,7 @@ def get_data(transform=True):
                                             # transforms.Normalize(img_mean, img_std)
                                             ])
 
-    return prepare_dls(train_transform, val_transform, 32, 32)
+    return prepare_dls(train_transform, val_transform, params.batch_size, params.batch_size)
 
 
 def show_data_dist():
