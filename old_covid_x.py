@@ -130,7 +130,7 @@ def get_data(size=299, transform=True, shuffle=True):
                                               # transforms.ColorJitter(brightness=0.1, contrast=0.1, hue=0.1),
                                               ])
         val_transform = transforms.Compose([transforms.Resize((size, size)),
-                                            transforms.Grayscale(),
+                                            # transforms.Grayscale(),
                                             # transforms.CenterCrop((299, 299)),
                                             # transforms.RandomHorizontalFlip(),
                                             # transforms.RandomVerticalFlip(),

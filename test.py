@@ -1,6 +1,8 @@
 import torch
+import wandb
 import numpy as np
 from utils import set_model_mode
+
 
 def tester(device, encoder, classifier, discriminator, source_test_loader, target_test_loader, training_mode):
     print("Model test ...")
@@ -8,7 +10,7 @@ def tester(device, encoder, classifier, discriminator, source_test_loader, targe
     encoder.to(device)
     classifier.to(device)
     set_model_mode('eval', [encoder, classifier])
-    
+
     if training_mode == 'dann':
         discriminator.to(device)
         set_model_mode('eval', [discriminator])
@@ -32,7 +34,6 @@ def tester(device, encoder, classifier, discriminator, source_test_loader, targe
         source_pred = source_output.data.max(1, keepdim=True)[1]
         source_correct += source_pred.eq(source_label.data.view_as(source_pred)).cpu().sum()
 
-
         # 2. Target input -> Target Classification
         target_image, target_label = target_data
         # target_image = torch.cat((target_image, target_image, target_image), 1)  # MNIST convert to 3 channel
@@ -43,7 +44,6 @@ def tester(device, encoder, classifier, discriminator, source_test_loader, targe
         target_output = classifier(target_feature)
         target_pred = target_output.data.max(1, keepdim=True)[1]
         target_correct += target_pred.eq(target_label.data.view_as(target_pred)).cpu().sum()
-
 
         if training_mode == 'dann':
             # 3. Combined input -> Domain Classificaion
@@ -59,18 +59,24 @@ def tester(device, encoder, classifier, discriminator, source_test_loader, targe
             domain_correct += domain_pred.eq(domain_combined_label.data.view_as(domain_pred)).cpu().sum()
 
     if training_mode == 'dann':
+        source_accuracy = 100. * source_correct.item() / len(source_test_loader.dataset)
+        target_accuracy = 100. * target_correct.item() / len(target_test_loader.dataset)
+        domain_accuracy = 100. * domain_correct.item() / (
+                len(source_test_loader.dataset) + len(target_test_loader.dataset))
         print("Test Results on DANN :")
         print('\nSource Accuracy: {}/{} ({:.2f}%)\n'
               'Target Accuracy: {}/{} ({:.2f}%)\n'
-              'Domain Accuracy: {}/{} ({:.2f}%)\n'.
-            format(
-            source_correct, len(source_test_loader.dataset), 100. * source_correct.item() / len(source_test_loader.dataset),
-            target_correct, len(target_test_loader.dataset), 100. * target_correct.item() / len(target_test_loader.dataset),
-            domain_correct, len(source_test_loader.dataset) + len(target_test_loader.dataset), 100. * domain_correct.item() / (len(source_test_loader.dataset) + len(target_test_loader.dataset))
-        ))
+              'Domain Accuracy: {}/{} ({:.2f}%)\n'.format(
+                source_correct, len(source_test_loader.dataset), source_accuracy,
+                target_correct, len(target_test_loader.dataset), target_accuracy,
+                domain_correct, len(source_test_loader.dataset) + len(target_test_loader.dataset), domain_accuracy))
+        wandb.log({'dann_source_accuracy': source_accuracy, 'dann_target_accuracy': target_accuracy, 'dann_domain_accuracy': domain_accuracy})
     else:
+        source_accuracy = 100. * source_correct.item() / len(source_test_loader.dataset)
+        target_accuracy = 100. * target_correct.item() / len(target_test_loader.dataset)
         print("Test results on source_only :")
         print('\nSource Accuracy: {}/{} ({:.2f}%)\n'
               'Target Accuracy: {}/{} ({:.2f}%)\n'.format(
-            source_correct, len(source_test_loader.dataset), 100. * source_correct.item() / len(source_test_loader.dataset),
-            target_correct, len(target_test_loader.dataset), 100. * target_correct.item() / len(target_test_loader.dataset)))
+                source_correct, len(source_test_loader.dataset), source_accuracy,
+                target_correct, len(target_test_loader.dataset), target_accuracy))
+        wandb.log({'source_accuracy': source_accuracy, 'target_accuracy': target_accuracy})

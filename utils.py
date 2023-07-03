@@ -5,6 +5,7 @@ import mnistm
 import itertools
 import os
 import params
+import wandb
 import numpy as np
 import matplotlib.pyplot as plt
 from torch.autograd import Function
@@ -273,3 +274,13 @@ def set_model_mode(mode='train', models=None):
             model.train()
         else:
             model.eval()
+
+
+def start_logging(model, model_name, train_batch_size, run_name):
+    wandb.login(key="52a8fcda8d59e5f549aebc7b19c0689466f0cc0f")
+    wandb.init(project=f"Covidx_DANN",
+               config={"model": model_name,
+                       "batch_size": train_batch_size})
+
+    wandb.run.name = f"{run_name}"
+    wandb.watch(model)

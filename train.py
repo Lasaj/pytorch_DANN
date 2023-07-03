@@ -4,6 +4,7 @@ import utils
 import torch.optim as optim
 import torch.nn as nn
 import test
+import wandb
 # import mnist
 # import mnistm
 from utils import save_model
@@ -59,6 +60,7 @@ def source_only(device, encoder, classifier, source_train_loader, source_test_lo
                                                                      100. * batch_idx / len(source_train_loader),
                                                                      class_loss.item()))
 
+        wandb.log({'source_class_loss': class_loss.item()})
         test.tester(device, encoder, classifier, None, source_test_loader, target_test_loader,
                     training_mode='source_only')
 

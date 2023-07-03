@@ -9,8 +9,10 @@ import model
 import params
 from datetime import datetime
 
+import utils
+
 # Training options
-save_name = datetime.now().strftime("%y%m%d_%H%M") + '_IV3'
+save_name = datetime.now().strftime("%y%m%d_%H%M") + '_old_covid_x'
 discriminator_loss = params.discriminator_loss
 encoder_type = params.encoder_type
 
@@ -37,6 +39,8 @@ def main():
         encoder = model.Extractor().to(device)
         classifier = model.Classifier().to(device)
         discriminator = model.Discriminator().to(device)
+
+    utils.start_logging(encoder, encoder_type, params.batch_size, save_name)
 
     train.source_only(device, encoder, classifier, source_train_loader, source_test_loader, target_train_loader,
                       target_test_loader, save_name)
