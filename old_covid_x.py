@@ -1,0 +1,241 @@
+import torch
+import os
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+import numpy as np
+from torchvision import transforms, datasets
+from torch.utils.data import DataLoader, Dataset
+from PIL import Image
+from sklearn.model_selection import train_test_split
+
+import params
+
+# from dython.nominal import associations
+
+target_datasets = ['https://sirm.org/category/senza-categoria/covid-19/',
+                   'https://github.com/ml-workgroup/covid-19-image-repository/tree/master/png',
+                   'https://eurorad.org', 'https://github.com/armiro/COVID-CXNet',
+                   'https://github.com/ieee8023/covid-chestxray-dataset']
+
+root_dir = './old_covid_x/'
+covid_data = f'{root_dir}COVID.metadata.xlsx'
+normal_data = f'{root_dir}Normal.metadata.xlsx'
+pneumonia_data = f'{root_dir}Viral Pneumonia.metadata.xlsx'
+
+
+class OldCovidXDataset(Dataset):
+    def __init__(self, data_csv, root_dir, transform=None):
+        self.data_csv = data_csv
+        self.transform = transform
+        self.root_dir = root_dir
+
+    def __len__(self):
+        return len(self.data_csv)
+
+    def __getitem__(self, idx):
+        img_name = os.path.join(self.root_dir, self.data_csv.iloc[idx, 5], self.data_csv.iloc[idx, 0] + '.png')
+        image = Image.open(img_name).convert('RGB')
+        label = self.data_csv.iloc[idx, 4]
+
+        if self.transform:
+            image = self.transform(image)
+
+        return image, label
+
+
+def make_weights_for_balanced_classes(labels, nclasses):
+    count = [0] * nclasses
+    for item in labels:
+        count[item] += 1
+    weight_per_class = [0.] * nclasses
+    N = float(sum(count))
+    for i in range(nclasses):
+        weight_per_class[i] = N / float(count[i])
+    weight = [0] * len(labels)
+    for idx, val in enumerate(labels):
+        weight[idx] = weight_per_class[val]
+    return weight
+
+
+def prepare_dfs():
+    train_df, test_df = combine_dfs()
+    headers = ['file', 'format', 'size', 'source', 'label', 'folder']
+    train_df.columns = headers
+    train_df.label = train_df.label.astype('category')
+    train_df.replace(['normal', 'covid', 'pneumonia'], [0, 1, 2], inplace=True)
+
+    train_source = train_df[~train_df['source'].isin(target_datasets)].reset_index(drop=True)
+    train_target = train_df[train_df['source'].isin(target_datasets)].reset_index(drop=True)
+    train_source.columns = headers
+    train_target.columns = headers
+
+    # test_df = pd.read_csv(test_data, sep=" ", header=None)
+    test_df.columns = headers
+    test_df.label = test_df.label.astype('category')
+    test_df.replace(['normal', 'covid', 'pneumonia'], [0, 1, 2], inplace=True)
+
+    test_source = test_df[~test_df['source'].isin(target_datasets)].reset_index(drop=True)
+    test_target = test_df[test_df['source'].isin(target_datasets)].reset_index(drop=True)
+    test_source.columns = headers
+    test_target.columns = headers
+
+    train_target = pd.concat([train_target, train_target])
+    test_target = pd.concat([test_target, test_target])
+
+    return train_source, train_target, test_source, test_target
+
+
+def prepare_dls(train_transform, val_transform, train_batch_size, test_batch_size, n_classes=3, shuffle=True):
+    train_source, train_target, test_source, test_target = prepare_dfs()
+
+    # Get Datasets and DataLoaders for each split
+    train_source_ds = OldCovidXDataset(train_source, root_dir, transform=train_transform)
+    train_target_ds = OldCovidXDataset(train_target, root_dir, transform=train_transform)
+    test_source_ds = OldCovidXDataset(test_source, root_dir, transform=val_transform)
+    test_target_ds = OldCovidXDataset(test_target, root_dir, transform=val_transform)
+
+    source_labels = train_source_ds.data_csv.label
+    source_weights = make_weights_for_balanced_classes(source_labels, n_classes)
+    source_weights = torch.DoubleTensor(source_weights)
+    sampler = torch.utils.data.sampler.WeightedRandomSampler(source_weights, len(source_weights))
+    train_source_dl = DataLoader(train_source_ds, batch_size=train_batch_size, sampler=sampler, drop_last=True)
+
+    if not shuffle:
+        train_source_dl = DataLoader(train_source_ds, batch_size=train_batch_size, shuffle=shuffle, drop_last=False)
+    train_target_dl = DataLoader(train_target_ds, batch_size=train_batch_size, shuffle=shuffle, drop_last=False)
+    test_source_dl = DataLoader(test_source_ds, batch_size=test_batch_size, shuffle=False, drop_last=False)
+    test_target_dl = DataLoader(test_target_ds, batch_size=test_batch_size, shuffle=False, drop_last=False)
+
+    return train_source_dl, train_target_dl, test_source_dl, test_target_dl
+
+
+def get_data(size=299, transform=True, shuffle=True):
+    # train_df, val_df, test_df = prepare_dfs(data_csv)
+    train_transform, val_transform = None, None
+
+    if params.encoder_type == 'densenet' or params.encoder_type == 'resnet':
+        size = 224
+
+    if transform:
+        train_transform = transforms.Compose([transforms.Resize((size, size)),
+                                              # transforms.CenterCrop((size, size)),
+                                              # transforms.RandomHorizontalFlip(),
+                                              # transforms.RandomVerticalFlip(),
+                                              transforms.RandomRotation(20),
+                                              transforms.ToTensor(),
+                                              transforms.Normalize([0.29730626, 0.29918741, 0.27534935],
+                                                                   [0.32780124, 0.32292358, 0.32056796]),
+                                              # transforms.Grayscale(),
+                                              # transforms.ColorJitter(brightness=0.1, contrast=0.1, hue=0.1),
+                                              ])
+        val_transform = transforms.Compose([transforms.Resize((size, size)),
+                                            transforms.Grayscale(),
+                                            # transforms.CenterCrop((299, 299)),
+                                            # transforms.RandomHorizontalFlip(),
+                                            # transforms.RandomVerticalFlip(),
+                                            # transforms.RandomRotation(20),
+                                            transforms.ToTensor(),
+                                            transforms.Normalize([0.29730626, 0.29918741, 0.27534935],
+                                                                 [0.32780124, 0.32292358, 0.32056796]),
+                                            ])
+
+    return prepare_dls(train_transform, val_transform, params.batch_size, params.batch_size, shuffle=shuffle)
+
+
+def show_data_dist():
+    headers = ['id', 'file', 'label', 'source']
+    df = pd.read_csv(train_data, sep=" ", header=None)
+    df2 = pd.read_csv(test_data, sep=" ", header=None)
+    df = pd.concat([df, df2])
+    df.columns = headers
+    assoc_df = df.drop(['id', 'file'], axis=1)
+    print(df.head())
+
+    # assoc = associations(assoc_df, nom_nom_assoc='theil', figsize=(7, 7), cmap='RdBu',
+    #                      title="Correlation in CovidX",
+    #                      filename="../datasets/covid_x/covid_x_correlation.png")
+
+    dd = pd.crosstab(df.label, df.source, normalize='columns')
+    sns.heatmap(dd, annot=True, fmt='.3f', cmap='Blues')
+    plt.title("Representation of label in each sex")
+    plt.show()
+    plt.clf()
+
+    sns.countplot(df, x='source', hue='label')
+    plt.show()
+
+
+def combine_dfs():
+    covid_df = pd.read_excel(covid_data)
+    covid_df['label'] = 'covid'
+    covid_df['folder'] = 'COVID'
+    covid_train, covid_test = train_test_split(covid_df, test_size=0.2, random_state=42)
+
+    normal_df = pd.read_excel(normal_data)
+    normal_df['label'] = 'normal'
+    normal_df['folder'] = 'Normal'
+    normal_df['FILE NAME'] = normal_df['FILE NAME'].str.replace('NORMAL', 'Normal')
+    normal_train, normal_test = train_test_split(normal_df, test_size=0.2, random_state=42)
+
+    pneumonia_df = pd.read_excel(pneumonia_data)
+    pneumonia_df['label'] = 'pneumonia'
+    pneumonia_df['folder'] = 'Viral Pneumonia'
+    pneumonia_train, pneumonia_test = train_test_split(pneumonia_df, test_size=0.2, random_state=42)
+
+    train_df = pd.concat([covid_train, normal_train, pneumonia_train])
+    test_df = pd.concat([covid_test, normal_test, pneumonia_test])
+    return train_df, test_df
+
+
+def show_correlations():
+    train_df, test_df = combine_dfs()
+    df = pd.concat([train_df, test_df])
+    df = df[['label', 'URL']]
+    df['URL'] = pd.factorize(df['URL'])[0]
+    # print(df.iloc[0])
+    # print(df.columns)
+    # print(df['label'].corr(df['URL']))
+    # plt.matshow(df.corr())
+    # print(df.corr())
+    # plt.show()
+    counts = pd.crosstab(df['label'], df['URL'])
+    fig, ax = plt.subplots()
+    ax.matshow(counts)
+    for (i, j), z in np.ndenumerate(counts):
+        ax.text(j, i, '{:0.1f}'.format(z), ha='center', va='center')
+    ax.set_xticks(np.arange(len(counts.columns)))
+    ax.set_yticks(np.arange(len(counts.index)), counts.index)
+    plt.tight_layout()
+    plt.show()
+
+
+def main():
+    # a, b, c, d = prepare_dfs()
+    # print(a['label'].value_counts())
+    # print(b['label'].value_counts())
+    # print(c['label'].value_counts())
+    # print(d['label'].value_counts())
+    # print(a.head())
+    # print(a.shape, b.shape, c.shape, d.shape)
+
+    # x, y = combine_dfs()
+    # print(x.shape, y.shape)
+
+    train_source_dl, train_target_dl, test_source_dl, test_target_dl = get_data()
+    for i, (x, y) in enumerate(train_source_dl):
+        print(x.shape, y.shape)
+        print(x[0])
+        plt.imshow(x[0].permute(1, 2, 0))
+        plt.xlabel(y[0])
+        plt.show()
+
+        if i > 0:
+            break
+        # print(y)
+
+
+
+
+if __name__ == '__main__':
+    main()
